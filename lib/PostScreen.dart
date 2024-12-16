@@ -63,7 +63,7 @@ class _PostScreenState extends State<PostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    //日付フォーマット
+    //日付フォーマットです
     final formattedDate = widget.initialDate != null
         ? "${widget.initialDate!.year}/${widget.initialDate!.month.toString().padLeft(2, '0')}/${widget.initialDate!.day.toString().padLeft(2, '0')}"
         : "";
