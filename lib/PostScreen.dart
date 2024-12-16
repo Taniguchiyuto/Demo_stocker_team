@@ -207,9 +207,7 @@ class _PostScreenState extends State<PostScreen> {
         return Dialog(
             insetPadding:
                 const EdgeInsets.symmetric(horizontal: 7.5), //左右の余白を設定
-            // shape: RoundedRectangleBorder(borderRadius:
-            // borderRadius: BorderRadius.circular(16.0),//角の丸みを設定
-            // ),
+
             child: Container(
                 width: MediaQuery.of(context).size.width, //幅を設定
                 decoration: BoxDecoration(
