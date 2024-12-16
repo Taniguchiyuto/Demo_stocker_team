@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'PostScreen.dart'; // PostScreenは同じディレクトリに配置されている前提
 import 'package:intl/intl.dart'; // 日付フォーマット用
-import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,22 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            // 表示したいウィジェットを追加
-            // Positioned(
-            //   left: 22.0, // 左から22ピクセル
-            //   top: 59.0, // 上から59ピクセル
-            //   width: 120.0,
-            //   height: 28.0,
-            // child:
-            //  Text(
-            //   'ストック',
-            //   style: GoogleFonts.roboto(
-            //     fontSize: 20.0, // フォントサイズ
-            //     color: Colors.black, // テキストの色
-            //     fontWeight: FontWeight.bold, //フォントウェイト
-            //   ),
-            // ),
-            // ),
+
             Column(
               children: [
                 const SizedBox(height: 59), //ストックの文字の上部を設定
@@ -101,7 +85,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 7.5), //左右の余白を設定
                     child: Container(
-                      // width: 360, //指定された幅に変更
                       height: 319, //指定された高さに変更
                       decoration: BoxDecoration(
                         color: Colors.white, //背景色を白に設定
@@ -111,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           width: 1, //ボーダーの幅を設定
                         ),
                       ),
-                      // color: Colors.red,
+
                       child: Column(
                         children: [
                           SizedBox(
@@ -168,7 +151,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         final date = item['date'] as DateTime?;
 
                         return Container(
-                          // color: Colors.red,
                           child: GestureDetector(
                             onTap: () async {
                               // 編集画面に遷移（アニメーションを追加）
@@ -253,8 +235,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                                     ),
                                                     //黒ぽちボタンを右下に配置
 
-                                                    // alignment: Alignment
-                                                    //     .bottomCenter, // 親Containerで下寄せを強制
                                                     GestureDetector(
                                                       onTap: () {
                                                         _showCustomDeleteConfirmationDialog(
@@ -273,28 +253,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ),
                                       ),
                                     ),
-                                    // 黒ぽちボタンを右下に配置
-                                    // Positioned(
-                                    //   right: 16,
-                                    //   bottom: 16,
-                                    //   // child: CircleAvatar(
-                                    //   //   backgroundColor: Colors.black,
-                                    //   //   radius: 16,
-                                    //   child: IconButton(
-                                    //     padding: EdgeInsets.zero,
-                                    //     icon: const Icon(
-                                    //       Icons.more_horiz,
-                                    //       color: Colors.black,
-                                    //       size: 16,
-                                    //     ),
-                                    //     onPressed: () {
-                                    //       // ボタン押下時のアクション
-                                    //       _showDeleteConfirmationDialog(
-                                    //           context, index);
-                                    //     },
-                                    //   ),
-                                    //   // ),
-                                    // ),
                                   ],
                                 ),
                               ),
@@ -315,12 +273,6 @@ class _MyHomePageState extends State<MyHomePage> {
           decoration: BoxDecoration(
             color: Color(0xFF52C2CD), //背景色を設定
             borderRadius: BorderRadius.circular(29.35), //円形に近い角丸を設定
-            // boxShadow:[
-            //    BoxShadow(
-
-            //    ),
-
-            // ],
           ),
 
           child: FloatingActionButton(
@@ -372,11 +324,8 @@ class _MyHomePageState extends State<MyHomePage> {
           return Dialog(
               insetPadding:
                   EdgeInsets.symmetric(horizontal: 7.5), //左右の余白を7.5に設定
-              // shape: RoundedRectangleBorder(
-              //   borderRadius: BorderRadius.circular(16.0),
-              // ),
+
               child: Container(
-                // color: Colors.white,
                 width: MediaQuery.of(context).size.width, //全体から左右7.5pxずつ縮めた幅
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16.0), //角の丸みを設定
@@ -454,11 +403,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           //削除ボタン
                           Expanded(
                             child: SizedBox(
-                              // width: 120.42, //幅を固定
                               child: TextButton(
                                 style: TextButton.styleFrom(
-                                  // padding: const EdgeInsets.fromLTRB(92.94,
-                                  //     14.87, 92.94, 14.87), // 左右・上下のPadding
                                   foregroundColor: Colors.white,
                                   backgroundColor:
                                       const Color(0xFFF87951), //背景色(アクセントカラー)
@@ -466,10 +412,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                     borderRadius:
                                         BorderRadius.circular(7.44), //角の丸み
                                   ),
-                                  // side: const BorderSide(
-                                  //   color: Color(0xFFA4B6B8), //ボーダーの色
-                                  //   width: 0.93, //ボーダーの太さ
-                                  // ), //ボーダーを追加
                                 ),
                                 onPressed: () {
                                   setState(() {

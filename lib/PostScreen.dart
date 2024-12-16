@@ -63,7 +63,7 @@ class _PostScreenState extends State<PostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    //日付フォーマット
+    //日付フォーマットです
     final formattedDate = widget.initialDate != null
         ? "${widget.initialDate!.year}/${widget.initialDate!.month.toString().padLeft(2, '0')}/${widget.initialDate!.day.toString().padLeft(2, '0')}"
         : "";
@@ -207,9 +207,7 @@ class _PostScreenState extends State<PostScreen> {
         return Dialog(
             insetPadding:
                 const EdgeInsets.symmetric(horizontal: 7.5), //左右の余白を設定
-            // shape: RoundedRectangleBorder(borderRadius:
-            // borderRadius: BorderRadius.circular(16.0),//角の丸みを設定
-            // ),
+
             child: Container(
                 width: MediaQuery.of(context).size.width, //幅を設定
                 decoration: BoxDecoration(
