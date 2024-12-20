@@ -1,23 +1,5 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Post Screen Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const PostScreen(), // 最初にPostScreenを直接表示
-    );
-  }
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PostScreen extends StatefulWidget {
   final String? initialText; //編集用の初期テキスト

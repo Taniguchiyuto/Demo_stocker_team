@@ -3,6 +3,7 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services" // Firebase用プラグイン
 }
 
 android {
@@ -42,3 +43,11 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Firebase関連の依存関係がここに追加される
+    implementation platform('com.google.firebase:firebase-bom:32.2.2') // Firebase BoM (最新版を確認)
+    implementation 'com.google.firebase:firebase-analytics' // Firebase Analytics例
+}
+
+apply plugin: 'com.google.gms.google-services'

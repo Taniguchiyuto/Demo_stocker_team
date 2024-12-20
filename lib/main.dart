@@ -1,9 +1,16 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:my_flutter_app/modal.dart';
 import 'PostScreen.dart'; // PostScreenは同じディレクトリに配置されている前提
 import 'package:intl/intl.dart'; // 日付フォーマット用
+import 'PostScreen.dart'; //PostScreenをインポート
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -106,7 +113,6 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ),
                           Container(
-                            padding: EdgeInsets.all(0.0),
                             child: Text(
                               "気づきをストック",
                               style: TextStyle(
@@ -414,10 +420,21 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  setState(() {
-                                    _savedItems.removeAt(index); //アイテムを削除
+                                  //ダイアログを表示して削除確認
+                                  showCustomDeleteConfirmationDialog(
+                                      context, index, () {
+                                    //削除処理
+                                    setState(
+                                      () {
+                                        //削除処理
+                                        setState(
+                                          () {
+                                            _savedItems.removeAt(index);
+                                          },
+                                        );
+                                      },
+                                    );
                                   });
-                                  Navigator.of(context).pop(); //モーダルを閉じる
                                 },
                                 child: const Text('削除',
                                     style: TextStyle(

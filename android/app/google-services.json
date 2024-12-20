@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "688254305327",
+    "project_id": "stockr-d729b",
+    "storage_bucket": "stockr-d729b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:688254305327:android:17fcb215c4280ed12632da",
+        "android_client_info": {
+          "package_name": "com.example.my_flutter_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2E6pHPZHYooUPmyegEUypRvkAdWUXbG0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
