@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'PostScreen.dart'; // PostScreenは同じディレクトリに配置されている前提
 import 'package:intl/intl.dart'; // 日付フォーマット用
 
+import 'modal.dart'; //PostScreenをインポート
+
+
 void main() {
   runApp(const MyApp());
 }
@@ -29,35 +32,51 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+class Stock {
+  String text;
+  DateTime createdAt;
+
+  Stock({
+    required this.text,
+    required this.createdAt,
+  });
+}
+
 class _MyHomePageState extends State<MyHomePage> {
-  List<Map<String, dynamic>> _savedItems = []; // テキストと日時を保持するリスト
+  // List<Map<String, dynamic>> _savedItems = []; // テキストと日時を保持するリスト
 
   @override
+  void initState() {
+    super.initState();
+    print(_savedItems);
+  }
+
+  List<Stock> _savedItems = [];
+
   Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(
           children: [
             // 背景画像
-            Container(
-              width: double.infinity,
-              height: 160,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/stockr_image.jpeg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
 
-            Column(
+            Stack(
+
+
               children: [
-                const SizedBox(height: 59), //ストックの文字の上部を設定
-
-                Padding(
-                  padding: const EdgeInsets.only(left: 22.0), //左に22px分の余白を追加
-
+                Container(
+                  width: double.infinity,
+                  height: 160,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/stockr_image.jpeg'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 59, // ストックの文字の上部を設定
+                  left: 22, // 左に22px分の余白を追加
                   child: Container(
-                    // color: Colors.white,
                     height: 28.0,
                     child: Row(
                       children: [
@@ -72,6 +91,20 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ],
                     ),
+                  ),
+                ),
+              ],
+            ),
+
+            Column(
+              children: [
+                const SizedBox(height: 59), //ストックの文字の上部を設定
+
+                Padding(
+                  padding: const EdgeInsets.only(left: 22.0), //左に22px分の余白を追加
+
+                  child: Container(
+                    height: 28.0,
                   ),
                 ),
 
@@ -106,7 +139,6 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ),
                           Container(
-                            padding: EdgeInsets.all(0.0),
                             child: Text(
                               "気づきをストック",
                               style: TextStyle(
@@ -147,42 +179,54 @@ class _MyHomePageState extends State<MyHomePage> {
                       itemCount: _savedItems.length,
                       itemBuilder: (context, index) {
                         final item = _savedItems[index];
-                        final text = item['text'] as String?;
-                        final date = item['date'] as DateTime?;
+                        final text = item.text;
+                        final date = item.createdAt;
 
                         return Container(
                           child: GestureDetector(
                             onTap: () async {
                               // 編集画面に遷移（アニメーションを追加）
-                              final updatedItem = await Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (context, animation, secondaryAnimation) {
-                                    return PostScreen(
-                                      initialText: text, // 現在のテキストを渡す
-                                      initialDate: date, // 現在の日付を渡す
-                                    );
-                                  },
-                                  transitionsBuilder: (context, animation,
-                                      secondaryAnimation, child) {
-                                    // アニメーション: 下から上へのスライド
-                                    return SlideTransition(
-                                      position: Tween<Offset>(
-                                        begin: const Offset(0, 1), // 下から上へ開始
-                                        end: Offset.zero, // 最終位置
-                                      ).animate(animation),
-                                      child: child,
-                                    );
-                                  },
+                              final updatedItem = await showModalBottomSheet<
+                                  Map<String, dynamic>>(
+                                context: context,
+                                isScrollControlled: true,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(16.0)),
                                 ),
+                                builder: (context) {
+                                  return DraggableScrollableSheet(
+                                    initialChildSize: 1.0, // 初期表示の高さを全画面に設定
+                                    minChildSize: 1.0, // 最小高さを全画面に設定
+                                    maxChildSize: 1.0, // 最大高さを全画面に設定
+                                    expand: false,
+                                    builder: (context, scrollController) {
+                                      return SingleChildScrollView(
+                                        controller: scrollController,
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                              maxHeight: MediaQuery.of(context)
+                                                  .size
+                                                  .height),
+                                          child: PostScreen(
+                                            initialText: text, // 現在のテキストを渡す
+                                            initialDate: date, // 現在の日付を渡す
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
                               );
 
                               // 編集結果が返ってきた場合、リストを更新
                               if (updatedItem != null &&
                                   updatedItem is Map<String, dynamic>) {
                                 setState(() {
-                                  _savedItems[index] = updatedItem; // リストを更新
+                                  _savedItems[index] = Stock(
+                                    text: updatedItem['text'],
+                                    createdAt: updatedItem['date'],
+                                  ); // リストを更新
                                 });
                               }
                             },
@@ -237,7 +281,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                                     GestureDetector(
                                                       onTap: () {
-                                                        _showCustomDeleteConfirmationDialog(
+                                                        _showDeleteConfirmationDialog(
                                                             context, index);
                                                       },
                                                       child: const Icon(
@@ -279,29 +323,47 @@ class _MyHomePageState extends State<MyHomePage> {
             backgroundColor: Colors.transparent, // 背景を透明に
             elevation: 0, // 影をなくす
             onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) {
-                    return const PostScreen(); // 遷移先のページを指定
-                  },
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                    return SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 1), // 下から上へ開始
-                        end: Offset.zero, // 最終位置
-                      ).animate(animation),
-                      child: child,
-                    );
-                  },
+              //モーダルシートを表示
+              final result = await showModalBottomSheet<Map<String, dynamic>>(
+                context: context,
+                isScrollControlled: true, // 全画面に近いモーダル表示を可能にする
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16.0)), // 上部を角丸
                 ),
+                builder: (context) {
+                  return DraggableScrollableSheet(
+                    initialChildSize: 1.0, // 初期の高さを全画面に設定
+                    minChildSize: 1.0, // 最小高さを全画面に設定
+                    maxChildSize: 1.0, // 最大高さを全画面に設定
+                    expand: false, // 下に引き下げられないようにする
+                    builder: (context, scrollController) {
+                      return SingleChildScrollView(
+                        controller: scrollController,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context)
+                                .size
+                                .height, // 最大高さを画面サイズに設定
+                          ),
+                          child: PostScreen(
+                            initialText: '', // 編集用の初期テキストを空に設定
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               );
 
               if (result != null && result is Map<String, dynamic>) {
                 setState(() {
                   // 新しいアイテムをリストに追加
-                  _savedItems.add(result);
+                  _savedItems.add(Stock(
+                    text: result['text'],
+                    createdAt: result['date'],
+                  ));
+                  print(_savedItems);
                 });
               }
             },
@@ -315,126 +377,35 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   //削除確認ダイアログのメソッド
-  void _showCustomDeleteConfirmationDialog(BuildContext context, int index) {
+  void _showDeleteConfirmationDialog(BuildContext context, int index) {
     showDialog(
-        context: context,
-        barrierColor: Colors.grey[300],
-        barrierDismissible: true, //ダイアログ外をタップして閉じる
-        builder: (BuildContext context) {
-          return Dialog(
-              insetPadding:
-                  EdgeInsets.symmetric(horizontal: 7.5), //左右の余白を7.5に設定
 
-              child: Container(
-                width: MediaQuery.of(context).size.width, //全体から左右7.5pxずつ縮めた幅
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.0), //角の丸みを設定
-                  color: Colors.white, //背景色を白色に設定
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    top: 32.0,
-                    left: 20.0,
-                    right: 20.0,
-                    bottom: 20.0,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min, //必要な高さだけ確保
-                    crossAxisAlignment: CrossAxisAlignment.stretch, //横幅いっぱいに表示
-                    children: [
-                      //タイトル
+      context: context,
+      builder: (context) {
+        return CustomModalDialog(
+          title: '選択したストックを削除しますか？',
+          description: '削除したストックは復元できません。',
+          primaryButtonText: '削除',
+          primaryButtonAction: () {
+            setState(() {
+              // 削除処理
+              if (index >= 0 && index < _savedItems.length) {
+                _savedItems.removeAt(index); //SavedItemsを直接操作
+                print('削除後のリストの長さ: ${_savedItems.length}');
+              } else {
+                print('無効なインデックス: $index');
+              }
+            });
+            Navigator.of(context).pop(); // モーダルを閉じる
+          },
+          secondaryButtonText: 'キャンセル',
+          secondaryButtonAction: () {
+            Navigator.of(context).pop(); // モーダルを閉じる
+          },
+          isReversed: false, // ボタン配置を逆にする
+        );
+      },
+    );
 
-                      SizedBox(
-                        height: 23.0,
-                        child: Text(
-                          '選択したストックを削除しますか？',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
-                            // height: 23.0,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      const SizedBox(height: 30.0),
-                      //説明
-                      Text(
-                        '削除したストックは復元できません。',
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          color: Colors.black,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 30.0),
-                      //ボタン
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          //キャンセルボタン
-                          Expanded(
-                            child: SizedBox(
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.grey,
-                                  backgroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(7.44),
-                                  ),
-                                  side: const BorderSide(
-                                    color: Color(0xFFA4B6B8), //ボーダーの色
-                                    width: 0.93, //ボーダーの太さ
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context).pop(); //モーダルを閉じる
-                                },
-                                child: const Text('キャンセル',
-                                    style: TextStyle(
-                                      fontSize: 14.87, //フォントサイズ(必要に応じて調整)
-                                      fontFamily:
-                                          'Roboto', //フォントファミリーを設定(必要に応じて調整)
-                                      fontWeight: FontWeight.bold, //太字に設定
-                                    )),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16.0),
-                          //削除ボタン
-                          Expanded(
-                            child: SizedBox(
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  backgroundColor:
-                                      const Color(0xFFF87951), //背景色(アクセントカラー)
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(7.44), //角の丸み
-                                  ),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _savedItems.removeAt(index); //アイテムを削除
-                                  });
-                                  Navigator.of(context).pop(); //モーダルを閉じる
-                                },
-                                child: const Text('削除',
-                                    style: TextStyle(
-                                      fontSize: 14.87, //フォントサイズ(必要に応じて調整)
-                                      fontFamily:
-                                          'Roboto', //フォントファミリーを設定(必要に応じて調整)
-                                      fontWeight: FontWeight.bold, //太字に設定
-                                    )),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ));
-        });
   }
 }
