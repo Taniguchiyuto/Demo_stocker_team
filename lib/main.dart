@@ -30,14 +30,26 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+class Stock {
+  String text;
+  DateTime createdAt;
+
+  Stock({
+    required this.text,
+    required this.createdAt,
+  });
+}
+
 class _MyHomePageState extends State<MyHomePage> {
-  List<Map<String, dynamic>> _savedItems = []; // テキストと日時を保持するリスト
+  // List<Map<String, dynamic>> _savedItems = []; // テキストと日時を保持するリスト
 
   @override
   void initState() {
     super.initState();
     print(_savedItems);
   }
+
+  List<Stock> _savedItems = [];
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,8 +174,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       itemCount: _savedItems.length,
                       itemBuilder: (context, index) {
                         final item = _savedItems[index];
-                        final text = item['text'] as String?;
-                        final date = item['date'] as DateTime?;
+                        final text = item.text;
+                        final date = item.createdAt;
 
                         return Container(
                           child: GestureDetector(
@@ -206,7 +218,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               if (updatedItem != null &&
                                   updatedItem is Map<String, dynamic>) {
                                 setState(() {
-                                  _savedItems[index] = updatedItem; // リストを更新
+                                  _savedItems[index] = Stock(
+                                    text: updatedItem['text'],
+                                    createdAt: updatedItem['date'],
+                                  ); // リストを更新
                                 });
                               }
                             },
@@ -339,7 +354,10 @@ class _MyHomePageState extends State<MyHomePage> {
               if (result != null && result is Map<String, dynamic>) {
                 setState(() {
                   // 新しいアイテムをリストに追加
-                  _savedItems.add(result);
+                  _savedItems.add(Stock(
+                    text: result['text'],
+                    createdAt: result['date'],
+                  ));
                   print(_savedItems);
                 });
               }
