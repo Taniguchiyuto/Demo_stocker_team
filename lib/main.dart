@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'PostScreen.dart'; // PostScreenは同じディレクトリに配置されている前提
 import 'package:intl/intl.dart'; // 日付フォーマット用
+
 import 'modal.dart'; //PostScreenをインポート
+
 
 void main() {
   runApp(const MyApp());
@@ -56,7 +58,10 @@ class _MyHomePageState extends State<MyHomePage> {
         body: Stack(
           children: [
             // 背景画像
+
             Stack(
+
+
               children: [
                 Container(
                   width: double.infinity,
@@ -374,6 +379,7 @@ class _MyHomePageState extends State<MyHomePage> {
   //削除確認ダイアログのメソッド
   void _showDeleteConfirmationDialog(BuildContext context, int index) {
     showDialog(
+
       context: context,
       builder: (context) {
         return CustomModalDialog(
@@ -400,5 +406,6 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
+
   }
 }
