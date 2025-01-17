@@ -182,7 +182,6 @@ class _PostScreenState extends State<PostScreen> {
   void _showDiscardChangesDialog(BuildContext context) {
     showDialog(
       context: context,
-
       builder: (context) {
         return CustomModalDialog(
           title: '変更を破棄しますか？',
@@ -198,7 +197,6 @@ class _PostScreenState extends State<PostScreen> {
           },
           isReversed: true, // ボタン配置を逆にする
         );
-
       },
     );
   }
