@@ -22,6 +22,7 @@ class FirestoreService {
           .collection('users')
           .doc(userId)
           .collection('stocks')
+          .orderBy('createdAt', descending: false) // 昇順に並び替え
           .get();
 
       return snapshot.docs.map((doc) {
@@ -39,9 +40,10 @@ class FirestoreService {
   }
 
   // Firestoreにデータを追加するメソッド
-  Future<void> addStock(String userId, String text, DateTime createdAt) async {
+  Future<String> addStock(
+      String userId, String text, DateTime createdAt) async {
     try {
-      await _firestore
+      final docRef = await _firestore
           .collection('users')
           .doc(userId)
           .collection('stocks')
@@ -50,8 +52,11 @@ class FirestoreService {
         'createdAt': createdAt.toIso8601String(),
       });
       print('データをFirestoreに追加しました');
+
+      return docRef.id;
     } catch (e) {
       print('エラーが発生しました: $e');
+      rethrow; // 例外を再スロー
     }
   }
 

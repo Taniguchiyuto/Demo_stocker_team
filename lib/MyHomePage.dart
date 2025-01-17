@@ -354,17 +354,10 @@ class _MyHomePageState extends State<MyHomePage> {
               if (result != null && result is Map<String, dynamic>) {
                 final text = result['text'];
                 final createdAt = result['date'] as DateTime;
-                //Firestoreにデータを追加
+
+                // Firestoreにデータを追加
                 print("Firestoreにデータを追加します");
                 await _addStockToFirestore(text, createdAt);
-                setState(() {
-                  // 新しいアイテムをリストに追加
-                  _savedItems.add(Stock(
-                    text: text,
-                    createdAt: createdAt,
-                  ));
-                  print(_savedItems);
-                });
               }
             },
             child: const Icon(
@@ -426,9 +419,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _addStockToFirestore(String text, DateTime createdAt) async {
     try {
-      // Firestoreにデータを追加
-      await _firestoreService.addStock(userId, text, createdAt);
-      print("Firestoreにデータを追加しました");
+      // Firestoreにデータを追加してIDを取得
+      final String documentId =
+          await _firestoreService.addStock(userId, text, createdAt);
+
+      // ローカルリストに新しいストックを追加
+      setState(() {
+        _savedItems.add(
+          Stock(
+            id: documentId, // 取得したドキュメントIDを設定
+            text: text,
+            createdAt: createdAt,
+          ),
+        );
+      });
+
+      print("Firestoreにデータを追加し、ローカルリストを更新しました: $documentId");
     } catch (e) {
       print('エラーが発生しました: $e');
     }
