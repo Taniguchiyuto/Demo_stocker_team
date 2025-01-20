@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'PostScreen.dart'; // PostScreenは同じディレクトリに配置されている前提
-import 'package:intl/intl.dart'; // 日付フォーマット用
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; //Firestoreをインポート
-import 'modal.dart'; //PostScreenをインポート
-import 'firestore_service.dart';
-import 'MyHomePage.dart';
+import './View/MyHomePage/MyHomePage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import './Model/firestore/firestore_model.dart';
+import './ViewModel/MyHomePage/MyHomePage.dart';
+import './Model/Stock/stock.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  runApp(
+    ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -28,3 +31,15 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+//プロバイダー定義
+final firestoreServiceProvider = Provider<FirestoreService>((ref) {
+  return FirestoreService(); //FirestoreServiceのインスタンスを提供
+});
+
+final stockViewModelProvider =
+    StateNotifierProvider<StockViewModel, List<Stock>>((ref) {
+  final firestoreService = ref.watch(firestoreServiceProvider);
+  const userId = 'hogehoge'; // ユーザーIDを固定
+  return StockViewModel(firestoreService, userId);
+});

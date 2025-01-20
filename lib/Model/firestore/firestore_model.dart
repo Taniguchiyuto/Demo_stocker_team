@@ -1,19 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'modal.dart';
-
-class Stock {
-  String text;
-  DateTime createdAt;
-  String? id; //FirestoreのドキュメントID(空でも良いよ(^^)/)
-  Stock({
-    this.id,
-    required this.text,
-    required this.createdAt,
-  });
-}
+import '../Stock/stock.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String userId = "hogehoge";
 
   // Firestoreからデータを取得するメソッド
   Future<List<Stock>> fetchStocks(String userId) async {

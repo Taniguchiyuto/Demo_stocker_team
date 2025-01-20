@@ -1,32 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 日付フォーマット用
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore
-import 'PostScreen.dart'; // 編集画面用
-import 'modal.dart'; // カスタムモーダルダイアログ用
-import 'firestore_service.dart'; // Firestoreのサービスクラス
+import '../PostScreen/PostScreen.dart'; // 編集画面用
+import '../Modal/modal.dart'; // カスタムモーダルダイアログ用
+import '../../Model/firestore/firestore_model.dart'; //Firestoreのサービスクラス
+import '../../Model/Stock/stock.dart'; //Stockモデル
+import '../../ViewModel/MyHomePage/MyHomePage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MyHomePage extends StatefulWidget {
+// class MyHomePage extends StatefulWidget {
+//   const MyHomePage({super.key});
+
+//   @override
+//   State<MyHomePage> createState() => _MyHomePageState();
+// }
+
+class MyHomePage extends ConsumerWidget {
   const MyHomePage({super.key});
+  // final FirestoreService _firestoreService = FirestoreService();
+  // final String userId = 'hogehoge'; // 固定値、もしくはログインユーザーIDを指定
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  // @override
+  // _MyHomePageState createState() => _MyHomePageState();
+// }
+// void initState() {
+//   super.initState();
+//   print(_savedItems);
+//   _fetchStocksFromFirestore(); // 修正済み
+// }
 
-class _MyHomePageState extends State<MyHomePage> {
-  // List<Map<String, dynamic>> _savedItems = []; // テキストと日時を保持するリスト
+// class _MyHomePageState extends ConsumerState<MyHomePage> {
   final FirestoreService _firestoreService = FirestoreService();
   final String userId = 'hogehoge'; // 固定値、もしくはログインユーザーIDを指定
 
+  List<Stock> _savedItems = [];
   @override
   void initState() {
     super.initState();
-    print(_savedItems);
-    _fetchStocksFromFirestore(); //Firestoreからデータを取得
+    _fetchStocksFromFirestore();
   }
 
-  List<Stock> _savedItems = [];
-
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
         body: Stack(
           children: [
@@ -139,11 +153,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   SizedBox(
                     height: 52.0,
                   ),
-                  // Container(
-                  //   padding: const EdgeInsets.all(0.0), //上部分の余白を設定
-                  //   // color: Colors.pink,
-                  //   child:
-                  // _savedItemsが1つ以上あるときは、その数だけカードを表示
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.all(0.0),
@@ -368,75 +377,75 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ));
   }
+}
 
-  //削除確認ダイアログのメソッド
-  void _showDeleteConfirmationDialog(BuildContext context, int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return CustomModalDialog(
-          title: '選択したストックを削除しますか？',
-          description: '削除したストックは復元できません。',
-          primaryButtonText: '削除',
-          primaryButtonAction: () async {
-            try {
-              final documentId = _savedItems[index].id;
-              if (documentId != null) {
-                await _firestoreService.deleteStock(userId, documentId);
-                setState(() {
-                  _savedItems.removeAt(index);
-                });
-                Navigator.of(context).pop(); // モーダルを閉じる
-              } else {
-                print('エラー: ドキュメントIDが見つかりません');
-              }
-            } catch (e) {
-              print('エラーが発生しました: $e');
+//削除確認ダイアログのメソッド
+void _showDeleteConfirmationDialog(BuildContext context, int index) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return CustomModalDialog(
+        title: '選択したストックを削除しますか？',
+        description: '削除したストックは復元できません。',
+        primaryButtonText: '削除',
+        primaryButtonAction: () async {
+          try {
+            final documentId = _savedItems[index].id;
+            if (documentId != null) {
+              await _firestoreService.deleteStock(userId, documentId);
+              setState(() {
+                _savedItems.removeAt(index);
+              });
+              Navigator.of(context).pop(); // モーダルを閉じる
+            } else {
+              print('エラー: ドキュメントIDが見つかりません');
             }
-          },
+          } catch (e) {
+            print('エラーが発生しました: $e');
+          }
+        },
 
-          secondaryButtonText: 'キャンセル',
-          secondaryButtonAction: () {
-            Navigator.of(context).pop(); // モーダルを閉じる
-          },
-          isReversed: false, // ボタン配置を逆にする
-        );
-      },
-    );
+        secondaryButtonText: 'キャンセル',
+        secondaryButtonAction: () {
+          Navigator.of(context).pop(); // モーダルを閉じる
+        },
+        isReversed: false, // ボタン配置を逆にする
+      );
+    },
+  );
+}
+
+Future<void> _fetchStocksFromFirestore() async {
+  try {
+    final fetchedStocks = await _firestoreService.fetchStocks(userId);
+    setState(() {
+      _savedItems = fetchedStocks;
+    });
+    print("Firestoreからデータを取得しました: $_savedItems");
+  } catch (e) {
+    print('エラーが発生しました: $e');
   }
+}
 
-  Future<void> _fetchStocksFromFirestore() async {
-    try {
-      final fetchedStocks = await _firestoreService.fetchStocks(userId);
-      setState(() {
-        _savedItems = fetchedStocks;
-      });
-      print("Firestoreからデータを取得しました: $_savedItems");
-    } catch (e) {
-      print('エラーが発生しました: $e');
-    }
-  }
+Future<void> _addStockToFirestore(String text, DateTime createdAt) async {
+  try {
+    // Firestoreにデータを追加してIDを取得
+    final String documentId =
+        await _firestoreService.addStock(userId, text, createdAt);
 
-  Future<void> _addStockToFirestore(String text, DateTime createdAt) async {
-    try {
-      // Firestoreにデータを追加してIDを取得
-      final String documentId =
-          await _firestoreService.addStock(userId, text, createdAt);
+    // ローカルリストに新しいストックを追加
+    setState(() {
+      _savedItems.add(
+        Stock(
+          id: documentId, // 取得したドキュメントIDを設定
+          text: text,
+          createdAt: createdAt,
+        ),
+      );
+    });
 
-      // ローカルリストに新しいストックを追加
-      setState(() {
-        _savedItems.add(
-          Stock(
-            id: documentId, // 取得したドキュメントIDを設定
-            text: text,
-            createdAt: createdAt,
-          ),
-        );
-      });
-
-      print("Firestoreにデータを追加し、ローカルリストを更新しました: $documentId");
-    } catch (e) {
-      print('エラーが発生しました: $e');
-    }
+    print("Firestoreにデータを追加し、ローカルリストを更新しました: $documentId");
+  } catch (e) {
+    print('エラーが発生しました: $e');
   }
 }
