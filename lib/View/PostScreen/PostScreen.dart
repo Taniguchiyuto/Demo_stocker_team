@@ -18,10 +18,13 @@ class PostScreen extends ConsumerWidget {
     final viewModel = ref.watch(postScreenProvider.notifier);
     final state = ref.watch(postScreenProvider);
 
+    print('initialText涙: $initialText');
+    print('initialDate: $initialDate');
     // 初期値を設定
-    if (state.text.isEmpty && initialText != null) {
+    if (!state.isInitialTextApplied && initialText != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         viewModel.textController.text = initialText!;
+        viewModel.updateState(state.copyWith(isInitialTextApplied: true));
       });
     }
 
@@ -49,7 +52,7 @@ class PostScreen extends ConsumerWidget {
                     if (state.isTextEmpty) {
                       Navigator.pop(context);
                     } else {
-                      _showDiscardChangesDialog(context);
+                      _showDiscardChangesDialog(context, ref);
                     }
                   },
                 ),
@@ -133,15 +136,23 @@ class PostScreen extends ConsumerWidget {
     );
   }
 
-  void _showDiscardChangesDialog(BuildContext context) {
+  void _showDiscardChangesDialog(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.read(postScreenProvider.notifier);
     showDialog(
       context: context,
       builder: (context) {
+        //stateをリセット
+
         return CustomModalDialog(
           title: '変更を破棄しますか？',
           description: 'このまま破棄すると編集した内容が全て失われます。',
           primaryButtonText: '破棄する',
-          primaryButtonAction: () {
+          primaryButtonAction: () async {
+            //非同期で状態をリセット
+            await Future.delayed(Duration.zero, () {
+              viewModel.resetState();
+            });
+            viewModel.resetState(); //状態をリセット
             Navigator.of(context).pop(); // モーダルを閉じる
             Navigator.of(context).pop(); // 編集画面を閉じる
           },

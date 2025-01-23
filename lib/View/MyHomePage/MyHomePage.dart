@@ -7,40 +7,19 @@ import '../../Model/firestore/firestore_model.dart'; //Firestoreのサービス�
 import '../../Model/Stock/stock.dart'; //Stockモデル
 import '../../ViewModel/MyHomePage/MyHomePage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// class MyHomePage extends StatefulWidget {
-//   const MyHomePage({super.key});
-
-//   @override
-//   State<MyHomePage> createState() => _MyHomePageState();
-// }
+import '../../main.dart';
+import '../../ViewModel/PostScreen/PostScreen.dart';
 
 class MyHomePage extends ConsumerWidget {
-  const MyHomePage({super.key});
-  // final FirestoreService _firestoreService = FirestoreService();
-  // final String userId = 'hogehoge'; // 固定値、もしくはログインユーザーIDを指定
+  const MyHomePage({Key? key}) : super(key: key);
 
-  // @override
-  // _MyHomePageState createState() => _MyHomePageState();
-// }
-// void initState() {
-//   super.initState();
-//   print(_savedItems);
-//   _fetchStocksFromFirestore(); // 修正済み
-// }
-
-// class _MyHomePageState extends ConsumerState<MyHomePage> {
-  final FirestoreService _firestoreService = FirestoreService();
-  final String userId = 'hogehoge'; // 固定値、もしくはログインユーザーIDを指定
-
-  List<Stock> _savedItems = [];
   @override
-  void initState() {
-    super.initState();
-    _fetchStocksFromFirestore();
-  }
-
   Widget build(BuildContext context, WidgetRef ref) {
+    //ViewModelのstateを監視
+    final myHomeState = ref.watch(myHomeProvider);
+    final viewModel = ref.read(myHomeProvider.notifier);
+    final savedItems = myHomeState.savedItems;
+    final postScreenViewModel = ref.read(postScreenProvider.notifier);
     return Scaffold(
         body: Stack(
           children: [
@@ -64,14 +43,14 @@ class MyHomePage extends ConsumerWidget {
                   child: Container(
                     height: 28.0,
                     child: Row(
-                      children: [
+                      children: const [
                         Text(
                           'ストック',
                           style: TextStyle(
                             fontFamily: 'Roboto',
                             fontWeight: FontWeight.w900, // w700よりさらに太い
                             fontSize: 20,
-                            height: 28 / 20, // ラインハイトの調整(28px/20px = 1.4)
+                            height: 1.4, // ラインハイトの調整(28px/20px = 1.4)
                           ),
                         ),
                       ],
@@ -80,7 +59,7 @@ class MyHomePage extends ConsumerWidget {
                 ),
               ],
             ),
-
+//中身(リストor空の時のUI)
             Column(
               children: [
                 const SizedBox(height: 59), //ストックの文字の上部を設定
@@ -94,8 +73,8 @@ class MyHomePage extends ConsumerWidget {
                 ),
 
                 // _savedItemsが空のときは指画像や説明を表示
-                if (_savedItems.isEmpty) ...[
-                  SizedBox(
+                if (savedItems.isEmpty) ...[
+                  const SizedBox(
                     height: 35.0,
                   ),
                   Container(
@@ -136,7 +115,7 @@ class MyHomePage extends ConsumerWidget {
                           Container(
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 12.0),
-                            child: Text(
+                            child: const Text(
                               "日々の仕事・生活で考えたことや、\n忘れずにおきたいと思った気づきを貯めていきましょう。",
                               style: TextStyle(
                                 fontSize: 12,
@@ -157,15 +136,18 @@ class MyHomePage extends ConsumerWidget {
                     child: ListView.builder(
                       padding: const EdgeInsets.all(0.0),
                       shrinkWrap: true,
-                      itemCount: _savedItems.length,
+                      itemCount: savedItems.length,
                       itemBuilder: (context, index) {
-                        final item = _savedItems[index];
+                        final item = savedItems[index];
                         final text = item.text;
                         final date = item.createdAt;
 
                         return Container(
                           child: GestureDetector(
                             onTap: () async {
+                              print('text: $text');
+                              print('date: $date');
+                              print('index :$index');
                               // 編集画面に遷移（アニメーションを追加）
                               final updatedItem = await showModalBottomSheet<
                                   Map<String, dynamic>>(
@@ -206,31 +188,13 @@ class MyHomePage extends ConsumerWidget {
                                 final text = updatedItem['text'];
                                 final createdAt = updatedItem['date'];
                                 //Firestoreで該当のデータを更新
-                                final String? documentId =
-                                    _savedItems[index].id;
-
-                                if (documentId == null) {
-                                  print("エラー: ドキュメントIDがnullのため更新できません");
-                                  return;
-                                }
-
-                                try {
-                                  await _firestoreService.updateStock(
-                                    userId,
-                                    documentId,
-                                    updatedItem['text'],
-                                    updatedItem['date'],
-                                  );
-                                  setState(() {
-                                    _savedItems[index] = Stock(
-                                      id: documentId,
-                                      text: updatedItem['text'],
-                                      createdAt: updatedItem['date'],
-                                    );
-                                  });
-                                } catch (e) {
-                                  print('エラーが発生しました');
-                                }
+                                await viewModel.updateStock(
+                                    index, text, createdAt);
+                                //PostScreenの状態をリセット
+                                postScreenViewModel.resetState();
+                              } else {
+                                //編集画面でキャンセルを押した場合、PostScreenの状態をリセット
+                                postScreenViewModel.resetState();
                               }
                             },
                             child: Padding(
@@ -285,7 +249,9 @@ class MyHomePage extends ConsumerWidget {
                                                     GestureDetector(
                                                       onTap: () {
                                                         _showDeleteConfirmationDialog(
-                                                            context, index);
+                                                            context,
+                                                            index,
+                                                            viewModel);
                                                       },
                                                       child: const Icon(
                                                         Icons.more_horiz,
@@ -359,14 +325,14 @@ class MyHomePage extends ConsumerWidget {
                   );
                 },
               );
+              // モーダルが閉じた後に状態をリセット
+              postScreenViewModel.resetState();
 
               if (result != null && result is Map<String, dynamic>) {
                 final text = result['text'];
                 final createdAt = result['date'] as DateTime;
-
                 // Firestoreにデータを追加
-                print("Firestoreにデータを追加します");
-                await _addStockToFirestore(text, createdAt);
+                await viewModel.addStockToFirestore(text, createdAt);
               }
             },
             child: const Icon(
@@ -380,7 +346,11 @@ class MyHomePage extends ConsumerWidget {
 }
 
 //削除確認ダイアログのメソッド
-void _showDeleteConfirmationDialog(BuildContext context, int index) {
+void _showDeleteConfirmationDialog(
+  BuildContext context,
+  int index,
+  MyHomeViewModel viewModel,
+) {
   showDialog(
     context: context,
     builder: (context) {
@@ -389,20 +359,8 @@ void _showDeleteConfirmationDialog(BuildContext context, int index) {
         description: '削除したストックは復元できません。',
         primaryButtonText: '削除',
         primaryButtonAction: () async {
-          try {
-            final documentId = _savedItems[index].id;
-            if (documentId != null) {
-              await _firestoreService.deleteStock(userId, documentId);
-              setState(() {
-                _savedItems.removeAt(index);
-              });
-              Navigator.of(context).pop(); // モーダルを閉じる
-            } else {
-              print('エラー: ドキュメントIDが見つかりません');
-            }
-          } catch (e) {
-            print('エラーが発生しました: $e');
-          }
+          await viewModel.deleteStock(index);
+          Navigator.of(context).pop(); //モーダルを閉じる
         },
 
         secondaryButtonText: 'キャンセル',
@@ -413,39 +371,4 @@ void _showDeleteConfirmationDialog(BuildContext context, int index) {
       );
     },
   );
-}
-
-Future<void> _fetchStocksFromFirestore() async {
-  try {
-    final fetchedStocks = await _firestoreService.fetchStocks(userId);
-    setState(() {
-      _savedItems = fetchedStocks;
-    });
-    print("Firestoreからデータを取得しました: $_savedItems");
-  } catch (e) {
-    print('エラーが発生しました: $e');
-  }
-}
-
-Future<void> _addStockToFirestore(String text, DateTime createdAt) async {
-  try {
-    // Firestoreにデータを追加してIDを取得
-    final String documentId =
-        await _firestoreService.addStock(userId, text, createdAt);
-
-    // ローカルリストに新しいストックを追加
-    setState(() {
-      _savedItems.add(
-        Stock(
-          id: documentId, // 取得したドキュメントIDを設定
-          text: text,
-          createdAt: createdAt,
-        ),
-      );
-    });
-
-    print("Firestoreにデータを追加し、ローカルリストを更新しました: $documentId");
-  } catch (e) {
-    print('エラーが発生しました: $e');
-  }
 }
