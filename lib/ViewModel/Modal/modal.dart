@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../Model/Modal/modal_state.dart';
+import './modal_state.dart';
 
 //ダイアログの状態を表すクラス
 class ModalViewModel extends StateNotifier<ModalState> {

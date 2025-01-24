@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../Model/PostScreen/Postscreen_model.dart';
+import './Postscreen_model.dart';
 
 final postScreenProvider =
     StateNotifierProvider<PostScreenViewModel, PostScreenState>(
@@ -9,6 +9,7 @@ final postScreenProvider =
 
 class PostScreenViewModel extends StateNotifier<PostScreenState> {
   final TextEditingController textController = TextEditingController();
+  // PostScreenViewModel() : super(const PostScreenState());
 
   PostScreenViewModel() : super(const PostScreenState()) {
     textController.addListener(() {
@@ -20,8 +21,20 @@ class PostScreenViewModel extends StateNotifier<PostScreenState> {
     });
   }
 
-  void updateState(PostScreenState newState) {
-    state = newState; // 新しい状態を適用
+  void updateText(String text) {
+    state = state.copyWith(
+      text: text,
+      isTextEmpty: text.isEmpty,
+    );
+  }
+
+  // void updateState(PostScreenState newState) {
+  //   state = newState; // 新しい状態を適用
+  // }
+
+//isInitialTextAppliedを更新
+  void updateIsInitialTextApplied(bool value) {
+    state = state.copyWith(isInitialTextApplied: value);
   }
 
   // forceResetDoneをfalseにリセット
@@ -31,17 +44,14 @@ class PostScreenViewModel extends StateNotifier<PostScreenState> {
 
   // 状態をリセットするメソッド
   void resetState() {
-    print('textController.text_1: ${textController.text}');
     state = const PostScreenState(); // 状態を初期化
-    print('textController.text_2: ${textController.text}');
+
     state = state.copyWith(forceResetDone: true); // フラグを立てる
-    textController.clear();
-    print('textController.text_3: ${textController.text}');
   }
 
   @override
   void dispose() {
-    textController.dispose();
+    // textController.dispose();
     super.dispose();
   }
 }

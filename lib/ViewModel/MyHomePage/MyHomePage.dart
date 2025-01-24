@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../Model/firestore/firestore_model.dart';
 import '../../Model/Stock/stock.dart';
-import '../../Model/MyHomePage/my_home_state.dart';
+import 'my_home_state.dart';
 
 final myHomeProvider = StateNotifierProvider<MyHomeViewModel, MyHomeState>(
   (ref) => MyHomeViewModel(),
@@ -17,30 +17,17 @@ class MyHomeViewModel extends StateNotifier<MyHomeState> {
             userId: 'hogehoge',
           ),
         ) {
-    fetchStocksFromFirestore();
+    listenToStocks();
   }
 
-  // Firestoreから取得
-  Future<void> fetchStocksFromFirestore() async {
+  // Firestoreから
+  Future<void> listenToStocks() async {
     try {
-      final fetchedStocks = await _firestoreService.fetchStocks(state.userId);
-      state = state.copyWith(savedItems: fetchedStocks);
+      final stockStream = await _firestoreService.streamStocks(state.userId);
+      stockStream.listen((stocks) {
+        state = state.copyWith(savedItems: stocks);
+      });
       print('Firestoreからデータを取得しました');
-    } catch (e) {
-      print('エラーが発生しました: $e');
-    }
-  }
-
-  // Firestoreに新規追加
-  Future<void> addStockToFirestore(String text, DateTime createdAt) async {
-    try {
-      final String documentId =
-          await _firestoreService.addStock(state.userId, text, createdAt);
-      final newList = [
-        ...state.savedItems,
-        Stock(id: documentId, text: text, createdAt: createdAt)
-      ];
-      state = state.copyWith(savedItems: newList);
     } catch (e) {
       print('エラーが発生しました: $e');
     }

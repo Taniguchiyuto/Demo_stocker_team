@@ -6,9 +6,10 @@ import '../../ViewModel/MyHomePage/MyHomePage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ViewModel/PostScreen/PostScreen.dart';
 import '../../ViewModel/Modal/modal.dart';
+import '../../Model/firestore/firestore_model.dart';
 
-class MyHomePage extends ConsumerWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,6 +18,8 @@ class MyHomePage extends ConsumerWidget {
     final viewModel = ref.read(myHomeProvider.notifier);
     final savedItems = myHomeState.savedItems;
     final postScreenViewModel = ref.read(postScreenProvider.notifier);
+    final FirestoreService firestoreService = FirestoreService();
+
     return Scaffold(
         body: Stack(
           children: [
@@ -40,7 +43,17 @@ class MyHomePage extends ConsumerWidget {
                   child: Container(
                     height: 28.0,
                     child: Row(
-                      children: const [
+                      children: [
+                        //写真(画像を配置)
+                        Image.asset(
+                          'assets/stockr_icon.png',
+                          width: 40.0, //幅を40pxに設定
+                          height: 40.0,
+                        ),
+
+                        SizedBox(
+                          width: 6.0,
+                        ),
                         Text(
                           'ストック',
                           style: TextStyle(
@@ -54,6 +67,7 @@ class MyHomePage extends ConsumerWidget {
                     ),
                   ),
                 ),
+                //ここに底辺に配置するPositionedを追加
               ],
             ),
 //中身(リストor空の時のUI)
@@ -280,6 +294,57 @@ class MyHomePage extends ConsumerWidget {
                 ]
               ],
             ),
+            //step4のやつ
+            // Positioned(
+            //   bottom: 0,
+            //   left: 0,
+            //   right: 0,
+            //   child: Container(
+            //     color: Colors.white,
+            //     padding: const EdgeInsets.all(16.0),
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //       children: [
+            //         // 左側のボタン
+            //         Container(
+            //           width: 150,
+            //           height: 50,
+            //           decoration: BoxDecoration(
+            //             color: Colors.blue,
+            //             borderRadius: BorderRadius.circular(8.0),
+            //           ),
+            //           child: Center(
+            //             child: Text(
+            //               'ボタン1',
+            //               style: TextStyle(
+            //                 color: Colors.white,
+            //                 fontSize: 16,
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //         // 右側のボタン
+            //         Container(
+            //           width: 150,
+            //           height: 50,
+            //           decoration: BoxDecoration(
+            //             color: Colors.green,
+            //             borderRadius: BorderRadius.circular(8.0),
+            //           ),
+            //           child: Center(
+            //             child: Text(
+            //               'ボタン2',
+            //               style: TextStyle(
+            //                 color: Colors.white,
+            //                 fontSize: 16,
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
           ],
         ),
         floatingActionButton: Container(
@@ -332,8 +397,8 @@ class MyHomePage extends ConsumerWidget {
               if (result != null && result is Map<String, dynamic>) {
                 final text = result['text'];
                 final createdAt = result['date'] as DateTime;
-                // Firestoreにデータを追加
-                await viewModel.addStockToFirestore(text, createdAt);
+
+                firestoreService.addStock("hogehoge", text, createdAt);
               }
             },
             child: const Icon(

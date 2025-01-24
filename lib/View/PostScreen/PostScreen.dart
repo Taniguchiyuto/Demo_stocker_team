@@ -27,7 +27,7 @@ class PostScreen extends ConsumerWidget {
         initialText != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         viewModel.textController.text = initialText!;
-        viewModel.updateState(state.copyWith(isInitialTextApplied: true));
+        viewModel.updateIsInitialTextApplied(true);
       });
     }
 
@@ -129,6 +129,10 @@ class PostScreen extends ConsumerWidget {
                       fontSize: 18,
                       color: Colors.black,
                     ),
+                    //onChangedを利用してテキストをViewModelに渡す
+                    // onChanged: (text) {
+                    //   viewModel.updateText(text);
+                    // }
                   ),
                 ),
               ],

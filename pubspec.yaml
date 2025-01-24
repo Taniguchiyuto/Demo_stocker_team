@@ -70,6 +70,8 @@ flutter:
   assets:
     - assets/stockr_image.jpeg
     - assets/stockr_finger.png
+    - assets/stockr_icon.png
+
   fonts:
     - family: NotoSansJP
       fonts:

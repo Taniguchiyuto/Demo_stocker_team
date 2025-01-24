@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ViewModel/Modal/modal.dart';
-import '../../Model/Modal/modal_state.dart';
+import '../../ViewModel/Modal/modal_state.dart';
 
 class CustomModalDialog extends ConsumerWidget {
   const CustomModalDialog({

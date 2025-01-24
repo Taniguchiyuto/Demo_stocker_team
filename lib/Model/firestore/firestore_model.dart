@@ -1,31 +1,38 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Stock/stock.dart';
+import '../../ViewModel/MyHomePage/my_home_state.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String userId = "hogehoge";
 
   // Firestoreからデータを取得するメソッド
-  Future<List<Stock>> fetchStocks(String userId) async {
+  //スナップショットをストリームで取得し、Stockリストに変換
+  Future<Stream<List<Stock>>> streamStocks(String userId) async {
     try {
-      final snapshot = await _firestore
+      final collectionRef = _firestore
           .collection('users')
           .doc(userId)
           .collection('stocks')
-          .orderBy('createdAt', descending: false) // 昇順に並び替え
-          .get();
+          .orderBy('createdAt', descending: false);
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return Stock(
-          id: doc.id,
-          text: data['text'] as String,
-          createdAt: DateTime.parse(data['createdAt'] as String),
-        );
-      }).toList();
+      // スナップショットをストリームで取得し、Stockリストに変換
+      final stream = collectionRef.snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          return Stock(
+            id: doc.id,
+            text: data['text'] as String,
+            createdAt: DateTime.parse(data['createdAt'] as String),
+          );
+        }).toList();
+      });
+
+      return Future.value(stream);
     } catch (e) {
       print('エラーが発生しました: $e');
-      return [];
+      // エラー時には空のストリームを返す
+      return Future.value(Stream.value([]));
     }
   }
 
