@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 日付フォーマット用
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore
 import '../PostScreen/PostScreen.dart'; // 編集画面用
 import '../Modal/modal.dart'; // カスタムモーダルダイアログ用
-import '../../Model/firestore/firestore_model.dart'; //Firestoreのサービスクラス
-import '../../Model/Stock/stock.dart'; //Stockモデル
 import '../../ViewModel/MyHomePage/MyHomePage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../main.dart';
 import '../../ViewModel/PostScreen/PostScreen.dart';
+import '../../ViewModel/Modal/modal.dart';
 
 class MyHomePage extends ConsumerWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -148,6 +145,9 @@ class MyHomePage extends ConsumerWidget {
                               print('text: $text');
                               print('date: $date');
                               print('index :$index');
+                              //モーダルを開く前にforceResetDoneをfalseにリセット
+                              postScreenViewModel.resetForceResetDone();
+
                               // 編集画面に遷移（アニメーションを追加）
                               final updatedItem = await showModalBottomSheet<
                                   Map<String, dynamic>>(
@@ -251,7 +251,8 @@ class MyHomePage extends ConsumerWidget {
                                                         _showDeleteConfirmationDialog(
                                                             context,
                                                             index,
-                                                            viewModel);
+                                                            viewModel,
+                                                            ref);
                                                       },
                                                       child: const Icon(
                                                         Icons.more_horiz,
@@ -350,25 +351,29 @@ void _showDeleteConfirmationDialog(
   BuildContext context,
   int index,
   MyHomeViewModel viewModel,
+  WidgetRef ref,
 ) {
+  final modalViewModel = ref.read(modalProvider.notifier);
+  // ViewModelを取得して状態を設定
+
+  modalViewModel.configureDialog(
+    title: '選択したストックを削除しますか？',
+    description: '削除したストックは復元できません。',
+    primaryButtonText: '削除',
+    primaryButtonAction: () async {
+      await viewModel.deleteStock(index);
+      Navigator.of(context).pop(); // モーダルを閉じる
+    },
+    secondaryButtonText: 'キャンセル',
+    secondaryButtonAction: () {
+      Navigator.of(context).pop(); // モーダルを閉じる
+    },
+    isReversed: false, // ボタン配置を逆にしない
+  );
+
+  // モーダルを表示
   showDialog(
     context: context,
-    builder: (context) {
-      return CustomModalDialog(
-        title: '選択したストックを削除しますか？',
-        description: '削除したストックは復元できません。',
-        primaryButtonText: '削除',
-        primaryButtonAction: () async {
-          await viewModel.deleteStock(index);
-          Navigator.of(context).pop(); //モーダルを閉じる
-        },
-
-        secondaryButtonText: 'キャンセル',
-        secondaryButtonAction: () {
-          Navigator.of(context).pop(); // モーダルを閉じる
-        },
-        isReversed: false, // ボタン配置を逆にする
-      );
-    },
+    builder: (_) => const CustomModalDialog(),
   );
 }

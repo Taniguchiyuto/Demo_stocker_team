@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../View/Modal/modal.dart';
 import '../../ViewModel/PostScreen/PostScreen.dart'; // ViewModel をインポート
+import '../../ViewModel/Modal/modal.dart';
 
 class PostScreen extends ConsumerWidget {
   final String? initialText; // 編集用の初期テキスト
@@ -21,7 +22,9 @@ class PostScreen extends ConsumerWidget {
     print('initialText涙: $initialText');
     print('initialDate: $initialDate');
     // 初期値を設定
-    if (!state.isInitialTextApplied && initialText != null) {
+    if (!state.forceResetDone &&
+        !state.isInitialTextApplied &&
+        initialText != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         viewModel.textController.text = initialText!;
         viewModel.updateState(state.copyWith(isInitialTextApplied: true));
@@ -138,31 +141,33 @@ class PostScreen extends ConsumerWidget {
 
   void _showDiscardChangesDialog(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(postScreenProvider.notifier);
+    final modalViewModel = ref.read(modalProvider.notifier);
+
+    // モーダルの状態を設定
+    modalViewModel.configureDialog(
+      title: '変更を破棄しますか？',
+      description: 'このまま破棄すると編集した内容が全て失われます。',
+      primaryButtonText: '破棄する',
+      primaryButtonAction: () async {
+        final viewModel = ref.read(postScreenProvider.notifier);
+        // 非同期で状態をリセット
+        await Future.delayed(Duration.zero, () {
+          viewModel.resetState();
+        });
+        Navigator.of(context).pop(); // モーダルを閉じる
+        Navigator.of(context).pop(); // 編集画面を閉じる
+      },
+      secondaryButtonText: '編集を続ける',
+      secondaryButtonAction: () {
+        Navigator.of(context).pop(); // モーダルを閉じる
+      },
+      isReversed: true,
+    );
+
+    // モーダルを表示
     showDialog(
       context: context,
-      builder: (context) {
-        //stateをリセット
-
-        return CustomModalDialog(
-          title: '変更を破棄しますか？',
-          description: 'このまま破棄すると編集した内容が全て失われます。',
-          primaryButtonText: '破棄する',
-          primaryButtonAction: () async {
-            //非同期で状態をリセット
-            await Future.delayed(Duration.zero, () {
-              viewModel.resetState();
-            });
-            viewModel.resetState(); //状態をリセット
-            Navigator.of(context).pop(); // モーダルを閉じる
-            Navigator.of(context).pop(); // 編集画面を閉じる
-          },
-          secondaryButtonText: '編集を続ける',
-          secondaryButtonAction: () {
-            Navigator.of(context).pop(); // モーダルを閉じる
-          },
-          isReversed: true,
-        );
-      },
+      builder: (_) => const CustomModalDialog(),
     );
   }
 }
