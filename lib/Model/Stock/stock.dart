@@ -13,4 +13,12 @@ class Stock with _$Stock {
 
   // JSON シリアライズ用のメソッドを生成
   factory Stock.fromJson(Map<String, dynamic> json) => _$StockFromJson(json);
+
+  // デフォルトのStockリストを提供するメソッド
+  static List<Stock> defaultStocks() {
+    return [];
+  }
+
+  // savedItemsの定義
+  static List<Stock> savedItems = defaultStocks();
 }

@@ -1,8 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../Stock/stock.dart';
-import '../../ViewModel/MyHomePage/my_home_state.dart';
+import '../Stock/stocks.dart';
+import '../Stock/stocks_model.dart';
 
-class FirestoreService {
+class FirestoreService extends StateNotifier<Stocks> {
+  FirestoreService() : super(const Stocks()) {
+    listenToStocks();
+  }
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Firestoreからデータを取得するメソッド
@@ -32,6 +37,20 @@ class FirestoreService {
       print('エラーが発生しました: $e');
       // エラー時には空のストリームを返す
       return Future.value(Stream.value([]));
+    }
+  }
+
+  Future<void> listenToStocks() async {
+    try {
+      final stockStream = await streamStocks();
+      stockStream.listen((stocks) {
+        Stock.savedItems = stocks;
+        state = Stocks();
+        // state = state.copyWith(stocks: stockStream);
+      });
+      print('Firestoreからデータを取得しました');
+    } catch (e) {
+      print('エラーが発生しました: $e');
     }
   }
 
@@ -89,3 +108,6 @@ class FirestoreService {
     }
   }
 }
+
+//FirestoreServiceのプロバイダを定義
+final StocksReposi = Provider((ref) => FirestoreService());

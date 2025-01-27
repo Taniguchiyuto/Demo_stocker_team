@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 日付フォーマット用
 import '../PostScreen/PostScreen.dart'; // 編集画面用
 import '../Modal/modal.dart'; // カスタムモーダルダイアログ用
-import '../../ViewModel/MyHomePage/MyHomePage.dart';
+import '../../Model/Stock/stocks_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ViewModel/PostScreen/PostScreen.dart';
 import '../../ViewModel/Modal/modal.dart';
@@ -15,11 +15,13 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     //ViewModelのstateを監視
-    final myHomeState = ref.watch(myHomeProvider);
-    final viewModel = ref.read(myHomeProvider.notifier);
-    final savedItems = myHomeState.savedItems;
+    final myHomeState = ref.watch(StocksModelProvider);
+    final viewModel = ref.read(StocksModelProvider.notifier);
+    // final savedItems = Stock.savedItems;
+    final firestoreService1 = ref.read(StocksReposi);
     final postScreenViewModel = ref.read(postScreenProvider.notifier);
     final FirestoreService firestoreService = FirestoreService();
+    final stocks = ref.watch(StocksModelProvider.select((s) => s.stocks));
 
     return Scaffold(
         body: Stack(
@@ -85,7 +87,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
 
                 // _savedItemsが空のときは指画像や説明を表示
-                if (savedItems.isEmpty) ...[
+                if (stocks.isEmpty) ...[
                   const SizedBox(
                     height: 35.0,
                   ),
@@ -148,9 +150,9 @@ class HomeScreen extends ConsumerWidget {
                     child: ListView.builder(
                       padding: const EdgeInsets.all(0.0),
                       shrinkWrap: true,
-                      itemCount: savedItems.length,
+                      itemCount: stocks.length,
                       itemBuilder: (context, index) {
-                        final item = savedItems[index];
+                        final item = stocks[index];
                         final text = item.text;
                         final date = item.createdAt;
 
@@ -203,8 +205,8 @@ class HomeScreen extends ConsumerWidget {
                                 final text = updatedItem['text'];
                                 final createdAt = updatedItem['date'];
                                 //Firestoreで該当のデータを更新
-                                await viewModel.updateStock(
-                                    index, text, createdAt);
+                                await firestoreService1.updateStock(
+                                    "hogehoge", text, createdAt);
                                 //PostScreenの状態をリセット
                                 postScreenViewModel.resetState();
                               } else {
@@ -416,7 +418,7 @@ class HomeScreen extends ConsumerWidget {
 void _showDeleteConfirmationDialog(
   BuildContext context,
   int index,
-  MyHomeViewModel viewModel,
+  viewModel,
   WidgetRef ref,
 ) {
   final modalViewModel = ref.read(modalProvider.notifier);

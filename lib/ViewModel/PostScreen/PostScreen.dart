@@ -12,13 +12,13 @@ class PostScreenViewModel extends StateNotifier<PostScreenState> {
   // PostScreenViewModel() : super(const PostScreenState());
 
   PostScreenViewModel() : super(const PostScreenState()) {
-    textController.addListener(() {
-      state = state.copyWith(
-        text: textController.text,
-        isTextEmpty: textController.text.isEmpty,
-      );
-      print('text!: ${state.text}');
-    });
+    // textController.addListener(() {
+    //   state = state.copyWith(
+    //     text: textController.text,
+    //     isTextEmpty: textController.text.isEmpty,
+    //   );
+    //   print('text!: ${state.text}');
+    // });
   }
 
   void updateText(String text) {

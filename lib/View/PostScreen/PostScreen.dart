@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../View/Modal/modal.dart';
 import '../../ViewModel/PostScreen/PostScreen.dart'; // ViewModel をインポート
 import '../../ViewModel/Modal/modal.dart';
+import '../../ViewModel/PostScreen/Postscreen_model.dart';
 
 class PostScreen extends ConsumerWidget {
   final String? initialText; // 編集用の初期テキスト
   final DateTime? initialDate; // 初期日付
+  //プロバイダーを読み込む
 
   const PostScreen({
     Key? key,
@@ -18,6 +20,7 @@ class PostScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.watch(postScreenProvider.notifier);
     final state = ref.watch(postScreenProvider);
+    final postScreenViewModel = ref.read(postScreenProvider.notifier);
 
     print('initialText涙: $initialText');
     print('initialDate: $initialDate');
@@ -117,23 +120,24 @@ class PostScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0),
                   child: TextField(
-                    controller: viewModel.textController,
-                    autofocus: true,
-                    maxLines: null,
-                    minLines: 1,
-                    decoration: const InputDecoration(
-                      hintText: '気づいたことを入力しましょう',
-                      border: InputBorder.none,
-                    ),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Colors.black,
-                    ),
-                    //onChangedを利用してテキストをViewModelに渡す
-                    // onChanged: (text) {
-                    //   viewModel.updateText(text);
-                    // }
-                  ),
+                      controller: viewModel.textController,
+                      autofocus: true,
+                      maxLines: null,
+                      minLines: 1,
+                      decoration: const InputDecoration(
+                        hintText: '気づいたことを入力しましょう',
+                        border: InputBorder.none,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                      ),
+                      //onChangedを利用してテキストをViewModelに渡す
+                      onChanged: (text) {
+                        viewModel.updateText(text);
+                        //resetState
+                        // postScreenViewModel.resetState();
+                      }),
                 ),
               ],
             ),
