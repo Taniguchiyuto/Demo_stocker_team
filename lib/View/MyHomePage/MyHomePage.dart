@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ViewModel/PostScreen/PostScreen.dart';
 import '../../ViewModel/Modal/modal.dart';
 import '../../Model/firestore/firestore_model.dart';
+import '../../Model/Stock/stock.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -398,7 +399,7 @@ class HomeScreen extends ConsumerWidget {
                 final text = result['text'];
                 final createdAt = result['date'] as DateTime;
 
-                firestoreService.addStock("hogehoge", text, createdAt);
+                firestoreService.addStock(text, createdAt);
               }
             },
             child: const Icon(

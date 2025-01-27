@@ -14,7 +14,6 @@ class MyHomeViewModel extends StateNotifier<MyHomeState> {
       : super(
           const MyHomeState(
             savedItems: [],
-            userId: 'hogehoge',
           ),
         ) {
     listenToStocks();
@@ -23,7 +22,7 @@ class MyHomeViewModel extends StateNotifier<MyHomeState> {
   // Firestoreから
   Future<void> listenToStocks() async {
     try {
-      final stockStream = await _firestoreService.streamStocks(state.userId);
+      final stockStream = await _firestoreService.streamStocks();
       stockStream.listen((stocks) {
         state = state.copyWith(savedItems: stocks);
       });
@@ -42,8 +41,7 @@ class MyHomeViewModel extends StateNotifier<MyHomeState> {
       return;
     }
     try {
-      await _firestoreService.updateStock(
-          state.userId, documentId, text, createdAt);
+      await _firestoreService.updateStock(documentId, text, createdAt);
       final newStock = Stock(id: documentId, text: text, createdAt: createdAt);
       final newList = [...state.savedItems];
       newList[index] = newStock;
@@ -62,7 +60,7 @@ class MyHomeViewModel extends StateNotifier<MyHomeState> {
       return;
     }
     try {
-      await _firestoreService.deleteStock(state.userId, documentId);
+      await _firestoreService.deleteStock(documentId);
       final newList = [...state.savedItems]..removeAt(index);
       state = state.copyWith(savedItems: newList);
     } catch (e) {

@@ -4,15 +4,14 @@ import '../../ViewModel/MyHomePage/my_home_state.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String userId = "hogehoge";
 
   // Firestoreからデータを取得するメソッド
   //スナップショットをストリームで取得し、Stockリストに変換
-  Future<Stream<List<Stock>>> streamStocks(String userId) async {
+  Future<Stream<List<Stock>>> streamStocks() async {
     try {
       final collectionRef = _firestore
           .collection('users')
-          .doc(userId)
+          .doc("hogehoge")
           .collection('stocks')
           .orderBy('createdAt', descending: false);
 
@@ -37,12 +36,11 @@ class FirestoreService {
   }
 
   // Firestoreにデータを追加するメソッド
-  Future<String> addStock(
-      String userId, String text, DateTime createdAt) async {
+  Future<String> addStock(String text, DateTime createdAt) async {
     try {
       final docRef = await _firestore
           .collection('users')
-          .doc(userId)
+          .doc("hogehoge")
           .collection('stocks')
           .add({
         'text': text,
@@ -59,11 +57,11 @@ class FirestoreService {
 
   // Firestoreのデータを更新するメソッド
   Future<void> updateStock(
-      String userId, String documentId, String text, DateTime createdAt) async {
+      String documentId, String text, DateTime createdAt) async {
     try {
       await _firestore
           .collection('users')
-          .doc(userId)
+          .doc("hogehoge")
           .collection('stocks')
           .doc(documentId)
           .update({
@@ -77,11 +75,11 @@ class FirestoreService {
   }
 
   // Firestoreのデータを削除するメソッド
-  Future<void> deleteStock(String userId, String documentId) async {
+  Future<void> deleteStock(String documentId) async {
     try {
       await _firestore
           .collection('users')
-          .doc(userId)
+          .doc("hogehoge")
           .collection('stocks')
           .doc(documentId)
           .delete();

@@ -7,6 +7,5 @@ part 'my_home_state.freezed.dart';
 class MyHomeState with _$MyHomeState {
   const factory MyHomeState({
     @Default([]) List<Stock> savedItems,
-    @Default('') String userId,
   }) = _MyHomeState;
 }

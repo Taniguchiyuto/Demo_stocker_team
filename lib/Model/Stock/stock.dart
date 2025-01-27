@@ -3,8 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'stock.freezed.dart';
 part 'stock.g.dart';
 
-// final List<Stock> savedItems = [];
-
 @freezed
 class Stock with _$Stock {
   const factory Stock({
@@ -16,12 +14,3 @@ class Stock with _$Stock {
   // JSON シリアライズ用のメソッドを生成
   factory Stock.fromJson(Map<String, dynamic> json) => _$StockFromJson(json);
 }
-
-// アプリ全体の状態を管理するクラスを `Stock.dart` に追加
-// @freezed
-// class StockState with _$StockState {
-//   const factory StockState({
-//     @Default([]) List<Stock> savedItems, // デフォルト空リスト
-//     @Default('') String userId, // デフォルトユーザーID
-//   }) = _StockState;
-// }
