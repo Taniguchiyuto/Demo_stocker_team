@@ -3,17 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../View/Modal/modal.dart';
 import '../../ViewModel/PostScreen/PostScreen.dart'; // ViewModel をインポート
 import '../../ViewModel/Modal/modal.dart';
-import '../../ViewModel/PostScreen/Postscreen_model.dart';
 
 class PostScreen extends ConsumerWidget {
-  final String? initialText; // 編集用の初期テキスト
+  final String initialText; // 編集用の初期テキスト
   final DateTime? initialDate; // 初期日付
+  final int? index;
   //プロバイダーを読み込む
 
   const PostScreen({
     Key? key,
-    this.initialText,
+    required this.initialText,
     this.initialDate,
+    this.index,
   }) : super(key: key);
 
   @override
@@ -33,6 +34,8 @@ class PostScreen extends ConsumerWidget {
         viewModel.updateIsInitialTextApplied(true);
       });
     }
+    //printの値をログに出力
+    print("PostScreen received index $index ");
 
     final formattedDate = initialDate != null
         ? "${initialDate!.year}/${initialDate!.month.toString().padLeft(2, '0')}/${initialDate!.day.toString().padLeft(2, '0')}"
@@ -73,6 +76,7 @@ class PostScreen extends ConsumerWidget {
                           Navigator.pop(context, {
                             'text': textToSave,
                             'date': now,
+                            'index': index,
                           });
                         },
                   style: TextButton.styleFrom(

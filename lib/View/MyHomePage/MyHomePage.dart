@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../ViewModel/PostScreen/PostScreen.dart';
 import '../../ViewModel/Modal/modal.dart';
 import '../../Model/firestore/firestore_model.dart';
-import '../../Model/Stock/stock.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -17,7 +16,7 @@ class HomeScreen extends ConsumerWidget {
     //ViewModelのstateを監視
     final myHomeState = ref.watch(StocksModelProvider);
     final viewModel = ref.read(StocksModelProvider.notifier);
-    // final savedItems = Stock.savedItems;
+
     final firestoreService1 = ref.read(StocksReposi);
     final postScreenViewModel = ref.read(postScreenProvider.notifier);
     final FirestoreService firestoreService = FirestoreService();
@@ -154,12 +153,17 @@ class HomeScreen extends ConsumerWidget {
                       itemBuilder: (context, index) {
                         final item = stocks[index];
                         final text = item.text;
-                        final date = item.createdAt;
+
+                        final date =
+                            item.updatedAt ?? item.createdAt; // 三項演算子を使用
+                        print('dateは: $date');
+                        final dateLabel =
+                            item.updatedAt != null ? '更新日' : '保存日';
 
                         return Container(
                           child: GestureDetector(
                             onTap: () async {
-                              print('text: $text');
+                              print('textは: $text');
                               print('date: $date');
                               print('index :$index');
                               //モーダルを開く前にforceResetDoneをfalseにリセット
@@ -191,6 +195,7 @@ class HomeScreen extends ConsumerWidget {
                                           child: PostScreen(
                                             initialText: text, // 現在のテキストを渡す
                                             initialDate: date, // 現在の日付を渡す
+                                            index: index, //現在のindexを渡す
                                           ),
                                         ),
                                       );
@@ -202,11 +207,23 @@ class HomeScreen extends ConsumerWidget {
                               // 編集結果が返ってきた場合、リストを更新
                               if (updatedItem != null &&
                                   updatedItem is Map<String, dynamic>) {
+                                print('こ');
                                 final text = updatedItem['text'];
                                 final createdAt = updatedItem['date'];
+                                final index = updatedItem['index'];
+                                print("得られたindexは: $index");
+
+                                final updatedStock = stocks[index]
+                                    .copyWith(text: text, createdAt: createdAt);
+                                //状態を更新
+                                viewModel.updateStock(index, updatedStock);
+
+                                //Stockのリストから対応するidを取得
+                                final correspondingId = stocks[index].id;
+                                print('対応するidは: $correspondingId');
                                 //Firestoreで該当のデータを更新
-                                await firestoreService1.updateStock(
-                                    "hogehoge", text, createdAt);
+                                await viewModel.update_firebese_Stock(
+                                    correspondingId, text, createdAt);
                                 //PostScreenの状態をリセット
                                 postScreenViewModel.resetState();
                               } else {
@@ -257,7 +274,7 @@ class HomeScreen extends ConsumerWidget {
                                                           .end, //下寄せに配置
                                                   children: [
                                                     Text(
-                                                      '保存日: ${DateFormat('yyyy-MM-dd HH:mm').format(date)}',
+                                                      '$dateLabel: ${DateFormat('yyyy-MM-dd HH:mm').format(date)}',
                                                       style: const TextStyle(
                                                           color: Colors.grey),
                                                     ),
@@ -265,9 +282,12 @@ class HomeScreen extends ConsumerWidget {
 
                                                     GestureDetector(
                                                       onTap: () {
+                                                        final correspondingId =
+                                                            stocks[index].id;
+
                                                         _showDeleteConfirmationDialog(
                                                             context,
-                                                            index,
+                                                            correspondingId,
                                                             viewModel,
                                                             ref);
                                                       },
@@ -401,7 +421,8 @@ class HomeScreen extends ConsumerWidget {
                 final text = result['text'];
                 final createdAt = result['date'] as DateTime;
 
-                firestoreService.addStock(text, createdAt);
+                // firestoreService.addStock(text, createdAt);
+                await viewModel.addStock(text, createdAt);
               }
             },
             child: const Icon(
@@ -417,7 +438,7 @@ class HomeScreen extends ConsumerWidget {
 //削除確認ダイアログのメソッド
 void _showDeleteConfirmationDialog(
   BuildContext context,
-  int index,
+  String? correspondingId,
   viewModel,
   WidgetRef ref,
 ) {
@@ -429,7 +450,7 @@ void _showDeleteConfirmationDialog(
     description: '削除したストックは復元できません。',
     primaryButtonText: '削除',
     primaryButtonAction: () async {
-      await viewModel.deleteStock(index);
+      await viewModel.deleteStock(correspondingId);
       Navigator.of(context).pop(); // モーダルを閉じる
     },
     secondaryButtonText: 'キャンセル',

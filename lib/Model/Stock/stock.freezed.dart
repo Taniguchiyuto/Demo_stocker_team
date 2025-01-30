@@ -23,7 +23,8 @@ mixin _$Stock {
   String? get id =>
       throw _privateConstructorUsedError; // FirestoreのドキュメントID（nullを許容）
   String get text => throw _privateConstructorUsedError; // 必須の文字列
-  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime get createdAt => throw _privateConstructorUsedError; // 必須の日付
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this Stock to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -39,7 +40,7 @@ abstract class $StockCopyWith<$Res> {
   factory $StockCopyWith(Stock value, $Res Function(Stock) then) =
       _$StockCopyWithImpl<$Res, Stock>;
   @useResult
-  $Res call({String? id, String text, DateTime createdAt});
+  $Res call({String? id, String text, DateTime createdAt, DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -60,6 +61,7 @@ class _$StockCopyWithImpl<$Res, $Val extends Stock>
     Object? id = freezed,
     Object? text = null,
     Object? createdAt = null,
+    Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -74,6 +76,10 @@ class _$StockCopyWithImpl<$Res, $Val extends Stock>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -85,7 +91,7 @@ abstract class _$$StockImplCopyWith<$Res> implements $StockCopyWith<$Res> {
       __$$StockImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String? id, String text, DateTime createdAt});
+  $Res call({String? id, String text, DateTime createdAt, DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -104,6 +110,7 @@ class __$$StockImplCopyWithImpl<$Res>
     Object? id = freezed,
     Object? text = null,
     Object? createdAt = null,
+    Object? updatedAt = freezed,
   }) {
     return _then(_$StockImpl(
       id: freezed == id
@@ -118,6 +125,10 @@ class __$$StockImplCopyWithImpl<$Res>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -125,7 +136,8 @@ class __$$StockImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$StockImpl implements _Stock {
-  const _$StockImpl({this.id, required this.text, required this.createdAt});
+  const _$StockImpl(
+      {this.id, required this.text, required this.createdAt, this.updatedAt});
 
   factory _$StockImpl.fromJson(Map<String, dynamic> json) =>
       _$$StockImplFromJson(json);
@@ -138,10 +150,13 @@ class _$StockImpl implements _Stock {
 // 必須の文字列
   @override
   final DateTime createdAt;
+// 必須の日付
+  @override
+  final DateTime? updatedAt;
 
   @override
   String toString() {
-    return 'Stock(id: $id, text: $text, createdAt: $createdAt)';
+    return 'Stock(id: $id, text: $text, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -152,12 +167,14 @@ class _$StockImpl implements _Stock {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.text, text) || other.text == text) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, text, createdAt);
+  int get hashCode => Object.hash(runtimeType, id, text, createdAt, updatedAt);
 
   /// Create a copy of Stock
   /// with the given fields replaced by the non-null parameter values.
@@ -179,7 +196,8 @@ abstract class _Stock implements Stock {
   const factory _Stock(
       {final String? id,
       required final String text,
-      required final DateTime createdAt}) = _$StockImpl;
+      required final DateTime createdAt,
+      final DateTime? updatedAt}) = _$StockImpl;
 
   factory _Stock.fromJson(Map<String, dynamic> json) = _$StockImpl.fromJson;
 
@@ -188,7 +206,9 @@ abstract class _Stock implements Stock {
   @override
   String get text; // 必須の文字列
   @override
-  DateTime get createdAt;
+  DateTime get createdAt; // 必須の日付
+  @override
+  DateTime? get updatedAt;
 
   /// Create a copy of Stock
   /// with the given fields replaced by the non-null parameter values.

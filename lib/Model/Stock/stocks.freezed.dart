@@ -95,7 +95,7 @@ class __$$StocksImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$StocksImpl implements _Stocks {
-  const _$StocksImpl({final List<Stock> stocks = const []}) : _stocks = stocks;
+  _$StocksImpl({final List<Stock> stocks = const []}) : _stocks = stocks;
 
   final List<Stock> _stocks;
   @override
@@ -133,7 +133,7 @@ class _$StocksImpl implements _Stocks {
 }
 
 abstract class _Stocks implements Stocks {
-  const factory _Stocks({final List<Stock> stocks}) = _$StocksImpl;
+  factory _Stocks({final List<Stock> stocks}) = _$StocksImpl;
 
   @override
   List<Stock> get stocks;

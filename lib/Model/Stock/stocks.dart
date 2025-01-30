@@ -5,5 +5,5 @@ part 'stocks.freezed.dart';
 
 @freezed
 class Stocks with _$Stocks {
-  const factory Stocks({@Default([]) List<Stock> stocks}) = _Stocks;
+  factory Stocks({@Default([]) List<Stock> stocks}) = _Stocks;
 }

@@ -10,6 +10,9 @@ _$StockImpl _$$StockImplFromJson(Map<String, dynamic> json) => _$StockImpl(
       id: json['id'] as String?,
       text: json['text'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$$StockImplToJson(_$StockImpl instance) =>
@@ -17,4 +20,5 @@ Map<String, dynamic> _$$StockImplToJson(_$StockImpl instance) =>
       'id': instance.id,
       'text': instance.text,
       'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };

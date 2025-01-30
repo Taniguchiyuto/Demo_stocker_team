@@ -1,23 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../firestore/firestore_model.dart';
-import 'stock.dart';
 import 'stocks.dart';
+// import 'stock.dart';
+import 'stock.dart';
 
 final StocksModelProvider =
     StateNotifierProvider<StocksModel, Stocks>((ref) => StocksModel(ref));
 
 class StocksModel extends StateNotifier<Stocks> {
-  final FirestoreService _firestoreService = FirestoreService();
+  // final FirestoreService _firestoreService = FirestoreService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final Ref ref;
 
-  StocksModel(this.ref) : super(const Stocks()) {
+  StocksModel(this.ref) : super(Stocks()) {
     () async {
       await streamStocks();
     }();
   }
-  // final stocksModelProvider =
-  //   StateNotifierProvider<StocksModel, Stocks>((ref) => StocksModel(ref));
 
   Future<void> streamStocks() async {
     try {
@@ -28,62 +29,63 @@ class StocksModel extends StateNotifier<Stocks> {
     } on Exception catch (e) {
       print('streamStocks error: $e');
     }
+  }
 
-    // // Firestoreから
-    // Future<void> listenToStocks() async {
-    //   try {
-    //     final stockStream = await _firestoreService.streamStocks();
-    //     stockStream.listen((stocks) {
-    //       Stock.savedItems = stocks;
-    //       state = MyHomeState();
-    //       // state = state.copyWith(stocks: stockStream);
-    //     });
-    //     print('Firestoreからデータを取得しました');
-    //   } catch (e) {
-    //     print('エラーが発生しました: $e');
-    //   }
-    // }
+  Future<String> addStock(String text, DateTime createdAt) async {
+    try {
+      final docRef = await _firestore
+          .collection('users')
+          .doc("hogehoge")
+          .collection('stocks')
+          .add({
+        'text': text,
+        'createdAt': createdAt.toIso8601String(),
+      });
+      print('データをFirestoreに追加しました');
 
-    // Future<void> listenToStocks() async {
-    //   await _firestoreService.listenToStocks();
-    // }
-
-    // Firestoreの既存ドキュメントを更新
-    Future<void> updateStock(int index, String text, DateTime createdAt) async {
-      final stock = Stock.savedItems[index];
-      final documentId = stock.id;
-      if (documentId == null) {
-        print("エラー: ドキュメントIDがnullのため更新できません");
-        return;
-      }
-      try {
-        await _firestoreService.updateStock(documentId, text, createdAt);
-        final newStock =
-            Stock(id: documentId, text: text, createdAt: createdAt);
-        final newList = [...Stock.savedItems];
-        newList[index] = newStock;
-        Stock.savedItems = newList;
-        state = state.copyWith(stocks: newList);
-      } catch (e) {
-        print('エラーが発生しました: $e');
-      }
+      return docRef.id;
+    } catch (e) {
+      print('エラーが発生しました: $e');
+      rethrow; // 例外を再スロー
     }
+  }
 
-    // Firestoreのドキュメント削除
-    Future<void> deleteStock(int index) async {
-      final stock = Stock.savedItems[index];
-      final documentId = stock.id;
-      if (documentId == null) {
-        print('エラー: ドキュメントIDがnullのため削除できません');
-        return;
-      }
-      try {
-        await _firestoreService.deleteStock(documentId);
-        final newList = [...Stock.savedItems]..removeAt(index);
-        Stock.savedItems = newList;
-      } catch (e) {
-        print('エラーが発生しました: $e');
-      }
+  // Firestoreのデータを更新するメソッド
+  Future<void> update_firebese_Stock(
+      String? documentId, String text, DateTime updatedAt) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc("hogehoge")
+          .collection('stocks')
+          .doc(documentId)
+          .update({
+        'text': text,
+        'updatedAt': updatedAt.toIso8601String(),
+      });
+      print('Firestoreでデータを更新しました: $documentId');
+    } catch (e) {
+      print('エラーが発生しました: $e');
+    }
+  }
+
+  void updateStock(int index, Stock updatedStock) {
+    final updatedStocks = [...state.stocks];
+    updatedStocks[index] = updatedStock;
+    state = state.copyWith(stocks: updatedStocks);
+  }
+
+  Future<void> deleteStock(String documentId) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc("hogehoge")
+          .collection('stocks')
+          .doc(documentId)
+          .delete();
+      print('Firestoreからデータを削除しました: $documentId');
+    } catch (e) {
+      print('エラーが発生しました: $e');
     }
   }
 }

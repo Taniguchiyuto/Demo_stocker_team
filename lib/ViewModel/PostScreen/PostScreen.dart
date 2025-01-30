@@ -11,15 +11,7 @@ class PostScreenViewModel extends StateNotifier<PostScreenState> {
   final TextEditingController textController = TextEditingController();
   // PostScreenViewModel() : super(const PostScreenState());
 
-  PostScreenViewModel() : super(const PostScreenState()) {
-    // textController.addListener(() {
-    //   state = state.copyWith(
-    //     text: textController.text,
-    //     isTextEmpty: textController.text.isEmpty,
-    //   );
-    //   print('text!: ${state.text}');
-    // });
-  }
+  PostScreenViewModel() : super(const PostScreenState()) {}
 
   void updateText(String text) {
     state = state.copyWith(
@@ -27,10 +19,6 @@ class PostScreenViewModel extends StateNotifier<PostScreenState> {
       isTextEmpty: text.isEmpty,
     );
   }
-
-  // void updateState(PostScreenState newState) {
-  //   state = newState; // 新しい状態を適用
-  // }
 
 //isInitialTextAppliedを更新
   void updateIsInitialTextApplied(bool value) {
@@ -44,6 +32,7 @@ class PostScreenViewModel extends StateNotifier<PostScreenState> {
 
   // 状態をリセットするメソッド
   void resetState() {
+    textController.clear(); // **TextFieldの値をクリア**
     state = const PostScreenState(); // 状態を初期化
 
     state = state.copyWith(forceResetDone: true); // フラグを立てる
