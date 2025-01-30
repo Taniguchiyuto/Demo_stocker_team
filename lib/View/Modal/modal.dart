@@ -1,27 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../ViewModel/Modal/modal.dart';
+import '../../ViewModel/Modal/modal_state.dart';
 
-class CustomModalDialog extends StatelessWidget {
-  final String title;
-  final String description;
-  final String primaryButtonText;
-  final VoidCallback primaryButtonAction;
-  final String? secondaryButtonText;
-  final VoidCallback? secondaryButtonAction;
-  final bool isReversed; // ボタン配置を逆にするプロパティを追加
-
+class CustomModalDialog extends ConsumerWidget {
   const CustomModalDialog({
     Key? key,
-    required this.title,
-    required this.description,
-    required this.primaryButtonText,
-    required this.primaryButtonAction,
-    this.secondaryButtonText,
-    this.secondaryButtonAction,
-    this.isReversed = false, // デフォルト値はfalse
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final modalState = ref.watch(modalProvider);
+    final modalViewModel = ref.read(modalProvider.notifier);
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 7.5),
       child: Container(
@@ -37,7 +27,7 @@ class CustomModalDialog extends StatelessWidget {
             children: [
               // タイトル
               Text(
-                title,
+                modalState.title,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18.0,
@@ -47,7 +37,7 @@ class CustomModalDialog extends StatelessWidget {
               const SizedBox(height: 30.0),
               // 説明
               Text(
-                description,
+                modalState.description,
                 style: const TextStyle(
                   fontSize: 14.0,
                   color: Colors.black,
@@ -58,9 +48,10 @@ class CustomModalDialog extends StatelessWidget {
               // ボタン
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: isReversed
-                    ? _buildReversedButtons() // ボタンを逆配置
-                    : _buildNormalButtons(), // 通常配置
+                children: modalState.isReversed
+                    ? _buildReversedButtons(
+                        modalState, modalViewModel) // ボタンを逆配置
+                    : _buildNormalButtons(modalState, modalViewModel), // 通常配置
               ),
             ],
           ),
@@ -70,10 +61,14 @@ class CustomModalDialog extends StatelessWidget {
   }
 
   // 通常のボタン配置
-  List<Widget> _buildNormalButtons() {
+  List<Widget> _buildNormalButtons(
+    ModalState modalState,
+    ModalViewModel modalViewModel,
+  ) {
     return [
       // 副ボタン
-      if (secondaryButtonText != null && secondaryButtonAction != null)
+      if (modalState.secondaryButtonText != null &&
+          modalState.secondaryButtonAction != null)
         Expanded(
           child: TextButton(
             style: TextButton.styleFrom(
@@ -87,9 +82,9 @@ class CustomModalDialog extends StatelessWidget {
                 width: 0.93,
               ),
             ),
-            onPressed: secondaryButtonAction,
+            onPressed: modalState.secondaryButtonAction,
             child: Text(
-              secondaryButtonText!,
+              modalState.secondaryButtonText!,
               style: const TextStyle(
                 fontSize: 14.87,
                 fontWeight: FontWeight.bold,
@@ -97,7 +92,7 @@ class CustomModalDialog extends StatelessWidget {
             ),
           ),
         ),
-      if (secondaryButtonText != null) const SizedBox(width: 16.0),
+      if (modalState.secondaryButtonText != null) const SizedBox(width: 16.0),
       // 主ボタン
       Expanded(
         child: TextButton(
@@ -108,9 +103,9 @@ class CustomModalDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(7.44),
             ),
           ),
-          onPressed: primaryButtonAction,
+          onPressed: modalState.primaryButtonAction,
           child: Text(
-            primaryButtonText,
+            modalState.primaryButtonText,
             style: const TextStyle(
               fontSize: 14.87,
               fontWeight: FontWeight.bold,
@@ -122,7 +117,10 @@ class CustomModalDialog extends StatelessWidget {
   }
 
   // ボタンを逆配置
-  List<Widget> _buildReversedButtons() {
+  List<Widget> _buildReversedButtons(
+    ModalState modalState,
+    ModalViewModel modalViewModel,
+  ) {
     return [
       // 主ボタン
       Expanded(
@@ -134,9 +132,9 @@ class CustomModalDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(7.44),
             ),
           ),
-          onPressed: primaryButtonAction,
+          onPressed: modalState.primaryButtonAction,
           child: Text(
-            primaryButtonText,
+            modalState.primaryButtonText,
             style: const TextStyle(
               fontSize: 14.87,
               fontWeight: FontWeight.bold,
@@ -146,7 +144,8 @@ class CustomModalDialog extends StatelessWidget {
       ),
       const SizedBox(width: 16.0),
       // 副ボタン
-      if (secondaryButtonText != null && secondaryButtonAction != null)
+      if (modalState.secondaryButtonText != null &&
+          modalState.secondaryButtonAction != null)
         Expanded(
           child: TextButton(
             style: TextButton.styleFrom(
@@ -160,9 +159,9 @@ class CustomModalDialog extends StatelessWidget {
                 width: 0.93,
               ),
             ),
-            onPressed: secondaryButtonAction,
+            onPressed: modalState.secondaryButtonAction,
             child: Text(
-              secondaryButtonText!,
+              modalState.secondaryButtonText!,
               style: const TextStyle(
                 fontSize: 14.87,
                 fontWeight: FontWeight.bold,

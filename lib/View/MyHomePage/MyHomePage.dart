@@ -1,32 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 日付フォーマット用
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore
-import 'PostScreen.dart'; // 編集画面用
-import 'modal.dart'; // カスタムモーダルダイアログ用
-import 'firestore_service.dart'; // Firestoreのサービスクラス
+import '../PostScreen/PostScreen.dart'; // 編集画面用
+import '../Modal/modal.dart'; // カスタムモーダルダイアログ用
+import '../../Model/Stock/stocks_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../ViewModel/PostScreen/PostScreen.dart';
+import '../../ViewModel/Modal/modal.dart';
+import '../../Model/firestore/firestore_model.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  // List<Map<String, dynamic>> _savedItems = []; // テキストと日時を保持するリスト
-  final FirestoreService _firestoreService = FirestoreService();
-  final String userId = 'hogehoge'; // 固定値、もしくはログインユーザーIDを指定
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  void initState() {
-    super.initState();
-    print(_savedItems);
-    _fetchStocksFromFirestore(); //Firestoreからデータを取得
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    //ViewModelのstateを監視
+    final myHomeState = ref.watch(StocksModelProvider);
+    final viewModel = ref.read(StocksModelProvider.notifier);
 
-  List<Stock> _savedItems = [];
+    final firestoreService1 = ref.read(StocksReposi);
+    final postScreenViewModel = ref.read(postScreenProvider.notifier);
+    final FirestoreService firestoreService = FirestoreService();
+    final stocks = ref.watch(StocksModelProvider.select((s) => s.stocks));
 
-  Widget build(BuildContext context) {
     return Scaffold(
         body: Stack(
           children: [
@@ -51,22 +46,33 @@ class _MyHomePageState extends State<MyHomePage> {
                     height: 28.0,
                     child: Row(
                       children: [
+                        //写真(画像を配置)
+                        Image.asset(
+                          'assets/stockr_icon.png',
+                          width: 40.0, //幅を40pxに設定
+                          height: 40.0,
+                        ),
+
+                        SizedBox(
+                          width: 6.0,
+                        ),
                         Text(
                           'ストック',
                           style: TextStyle(
                             fontFamily: 'Roboto',
                             fontWeight: FontWeight.w900, // w700よりさらに太い
                             fontSize: 20,
-                            height: 28 / 20, // ラインハイトの調整(28px/20px = 1.4)
+                            height: 1.4, // ラインハイトの調整(28px/20px = 1.4)
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
+                //ここに底辺に配置するPositionedを追加
               ],
             ),
-
+//中身(リストor空の時のUI)
             Column(
               children: [
                 const SizedBox(height: 59), //ストックの文字の上部を設定
@@ -80,8 +86,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
 
                 // _savedItemsが空のときは指画像や説明を表示
-                if (_savedItems.isEmpty) ...[
-                  SizedBox(
+                if (stocks.isEmpty) ...[
+                  const SizedBox(
                     height: 35.0,
                   ),
                   Container(
@@ -122,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Container(
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 12.0),
-                            child: Text(
+                            child: const Text(
                               "日々の仕事・生活で考えたことや、\n忘れずにおきたいと思った気づきを貯めていきましょう。",
                               style: TextStyle(
                                 fontSize: 12,
@@ -139,24 +145,30 @@ class _MyHomePageState extends State<MyHomePage> {
                   SizedBox(
                     height: 52.0,
                   ),
-                  // Container(
-                  //   padding: const EdgeInsets.all(0.0), //上部分の余白を設定
-                  //   // color: Colors.pink,
-                  //   child:
-                  // _savedItemsが1つ以上あるときは、その数だけカードを表示
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.all(0.0),
                       shrinkWrap: true,
-                      itemCount: _savedItems.length,
+                      itemCount: stocks.length,
                       itemBuilder: (context, index) {
-                        final item = _savedItems[index];
+                        final item = stocks[index];
                         final text = item.text;
-                        final date = item.createdAt;
+
+                        final date =
+                            item.updatedAt ?? item.createdAt; // 三項演算子を使用
+                        print('dateは: $date');
+                        final dateLabel =
+                            item.updatedAt != null ? '更新日' : '保存日';
 
                         return Container(
                           child: GestureDetector(
                             onTap: () async {
+                              print('textは: $text');
+                              print('date: $date');
+                              print('index :$index');
+                              //モーダルを開く前にforceResetDoneをfalseにリセット
+                              postScreenViewModel.resetForceResetDone();
+
                               // 編集画面に遷移（アニメーションを追加）
                               final updatedItem = await showModalBottomSheet<
                                   Map<String, dynamic>>(
@@ -183,6 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           child: PostScreen(
                                             initialText: text, // 現在のテキストを渡す
                                             initialDate: date, // 現在の日付を渡す
+                                            index: index, //現在のindexを渡す
                                           ),
                                         ),
                                       );
@@ -194,34 +207,28 @@ class _MyHomePageState extends State<MyHomePage> {
                               // 編集結果が返ってきた場合、リストを更新
                               if (updatedItem != null &&
                                   updatedItem is Map<String, dynamic>) {
+                                print('こ');
                                 final text = updatedItem['text'];
                                 final createdAt = updatedItem['date'];
+                                final index = updatedItem['index'];
+                                print("得られたindexは: $index");
+
+                                final updatedStock = stocks[index]
+                                    .copyWith(text: text, createdAt: createdAt);
+                                //状態を更新
+                                viewModel.updateStock(index, updatedStock);
+
+                                //Stockのリストから対応するidを取得
+                                final correspondingId = stocks[index].id;
+                                print('対応するidは: $correspondingId');
                                 //Firestoreで該当のデータを更新
-                                final String? documentId =
-                                    _savedItems[index].id;
-
-                                if (documentId == null) {
-                                  print("エラー: ドキュメントIDがnullのため更新できません");
-                                  return;
-                                }
-
-                                try {
-                                  await _firestoreService.updateStock(
-                                    userId,
-                                    documentId,
-                                    updatedItem['text'],
-                                    updatedItem['date'],
-                                  );
-                                  setState(() {
-                                    _savedItems[index] = Stock(
-                                      id: documentId,
-                                      text: updatedItem['text'],
-                                      createdAt: updatedItem['date'],
-                                    );
-                                  });
-                                } catch (e) {
-                                  print('エラーが発生しました');
-                                }
+                                await viewModel.update_firebese_Stock(
+                                    correspondingId, text, createdAt);
+                                //PostScreenの状態をリセット
+                                postScreenViewModel.resetState();
+                              } else {
+                                //編集画面でキャンセルを押した場合、PostScreenの状態をリセット
+                                postScreenViewModel.resetState();
                               }
                             },
                             child: Padding(
@@ -267,7 +274,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                           .end, //下寄せに配置
                                                   children: [
                                                     Text(
-                                                      '保存日: ${DateFormat('yyyy-MM-dd HH:mm').format(date)}',
+                                                      '$dateLabel: ${DateFormat('yyyy-MM-dd HH:mm').format(date)}',
                                                       style: const TextStyle(
                                                           color: Colors.grey),
                                                     ),
@@ -275,8 +282,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                                     GestureDetector(
                                                       onTap: () {
+                                                        final correspondingId =
+                                                            stocks[index].id;
+
                                                         _showDeleteConfirmationDialog(
-                                                            context, index);
+                                                            context,
+                                                            correspondingId,
+                                                            viewModel,
+                                                            ref);
                                                       },
                                                       child: const Icon(
                                                         Icons.more_horiz,
@@ -304,6 +317,57 @@ class _MyHomePageState extends State<MyHomePage> {
                 ]
               ],
             ),
+            //step4のやつ
+            // Positioned(
+            //   bottom: 0,
+            //   left: 0,
+            //   right: 0,
+            //   child: Container(
+            //     color: Colors.white,
+            //     padding: const EdgeInsets.all(16.0),
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //       children: [
+            //         // 左側のボタン
+            //         Container(
+            //           width: 150,
+            //           height: 50,
+            //           decoration: BoxDecoration(
+            //             color: Colors.blue,
+            //             borderRadius: BorderRadius.circular(8.0),
+            //           ),
+            //           child: Center(
+            //             child: Text(
+            //               'ボタン1',
+            //               style: TextStyle(
+            //                 color: Colors.white,
+            //                 fontSize: 16,
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //         // 右側のボタン
+            //         Container(
+            //           width: 150,
+            //           height: 50,
+            //           decoration: BoxDecoration(
+            //             color: Colors.green,
+            //             borderRadius: BorderRadius.circular(8.0),
+            //           ),
+            //           child: Center(
+            //             child: Text(
+            //               'ボタン2',
+            //               style: TextStyle(
+            //                 color: Colors.white,
+            //                 fontSize: 16,
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
           ],
         ),
         floatingActionButton: Container(
@@ -350,14 +414,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                 },
               );
+              // モーダルが閉じた後に状態をリセット
+              postScreenViewModel.resetState();
 
               if (result != null && result is Map<String, dynamic>) {
                 final text = result['text'];
                 final createdAt = result['date'] as DateTime;
 
-                // Firestoreにデータを追加
-                print("Firestoreにデータを追加します");
-                await _addStockToFirestore(text, createdAt);
+                // firestoreService.addStock(text, createdAt);
+                await viewModel.addStock(text, createdAt);
               }
             },
             child: const Icon(
@@ -368,75 +433,36 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ));
   }
+}
 
-  //削除確認ダイアログのメソッド
-  void _showDeleteConfirmationDialog(BuildContext context, int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return CustomModalDialog(
-          title: '選択したストックを削除しますか？',
-          description: '削除したストックは復元できません。',
-          primaryButtonText: '削除',
-          primaryButtonAction: () async {
-            try {
-              final documentId = _savedItems[index].id;
-              if (documentId != null) {
-                await _firestoreService.deleteStock(userId, documentId);
-                setState(() {
-                  _savedItems.removeAt(index);
-                });
-                Navigator.of(context).pop(); // モーダルを閉じる
-              } else {
-                print('エラー: ドキュメントIDが見つかりません');
-              }
-            } catch (e) {
-              print('エラーが発生しました: $e');
-            }
-          },
+//削除確認ダイアログのメソッド
+void _showDeleteConfirmationDialog(
+  BuildContext context,
+  String? correspondingId,
+  viewModel,
+  WidgetRef ref,
+) {
+  final modalViewModel = ref.read(modalProvider.notifier);
+  // ViewModelを取得して状態を設定
 
-          secondaryButtonText: 'キャンセル',
-          secondaryButtonAction: () {
-            Navigator.of(context).pop(); // モーダルを閉じる
-          },
-          isReversed: false, // ボタン配置を逆にする
-        );
-      },
-    );
-  }
+  modalViewModel.configureDialog(
+    title: '選択したストックを削除しますか？',
+    description: '削除したストックは復元できません。',
+    primaryButtonText: '削除',
+    primaryButtonAction: () async {
+      await viewModel.deleteStock(correspondingId);
+      Navigator.of(context).pop(); // モーダルを閉じる
+    },
+    secondaryButtonText: 'キャンセル',
+    secondaryButtonAction: () {
+      Navigator.of(context).pop(); // モーダルを閉じる
+    },
+    isReversed: false, // ボタン配置を逆にしない
+  );
 
-  Future<void> _fetchStocksFromFirestore() async {
-    try {
-      final fetchedStocks = await _firestoreService.fetchStocks(userId);
-      setState(() {
-        _savedItems = fetchedStocks;
-      });
-      print("Firestoreからデータを取得しました: $_savedItems");
-    } catch (e) {
-      print('エラーが発生しました: $e');
-    }
-  }
-
-  Future<void> _addStockToFirestore(String text, DateTime createdAt) async {
-    try {
-      // Firestoreにデータを追加してIDを取得
-      final String documentId =
-          await _firestoreService.addStock(userId, text, createdAt);
-
-      // ローカルリストに新しいストックを追加
-      setState(() {
-        _savedItems.add(
-          Stock(
-            id: documentId, // 取得したドキュメントIDを設定
-            text: text,
-            createdAt: createdAt,
-          ),
-        );
-      });
-
-      print("Firestoreにデータを追加し、ローカルリストを更新しました: $documentId");
-    } catch (e) {
-      print('エラーが発生しました: $e');
-    }
-  }
+  // モーダルを表示
+  showDialog(
+    context: context,
+    builder: (_) => const CustomModalDialog(),
+  );
 }
