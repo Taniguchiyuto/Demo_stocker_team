@@ -40,6 +40,39 @@ class FirestoreService extends StateNotifier<Stocks> {
       return Future.value(Stream.value([]));
     }
   }
+
+  //スナップショットでstockScoreを更新
+  // Stream<int> streamstockScore() {
+  //   try {
+  //     final collectionRef = _firestore
+  //         .collection('users')
+  //         .doc("hogehoge")
+  //         .collection('stockScore');
+  //     //常にcollectionの最新のドキュメントの値を取得;
+  //     return collectionRef.snapshots().map((snapshot) {
+  //       return snapshot.docs.map((doc) {
+  //         final data = doc.data();
+  //         return data['stockScore'] as int;
+  //       }).first;
+  //     });
+  //   } catch (e) {
+  //     print('エラーが発生しました: $e');
+  //     return Stream.value(0);
+  //   }
+  // }
+  Stream<int> streamstockScore() {
+    try {
+      final docRef = _firestore.collection('users').doc("hogehoge");
+      // ドキュメントのスナップショットを取得
+      return docRef.snapshots().map((snapshot) {
+        final data = snapshot.data();
+        return data != null ? data['stockScore'] as int : 0;
+      });
+    } catch (e) {
+      print('エラーが発生しました: $e');
+      return Stream.value(0);
+    }
+  }
 }
 
 //FirestoreServiceのプロバイダを定義
